@@ -1,0 +1,7 @@
+Django>=4.2,<6.0
+pillow==11.1.0
+tzdata==2025.1
+asgiref>=3.7.0
+sqlparse==0.5.5
+gunicorn==21.2.0
+whitenoise[brotli]==6.6.0

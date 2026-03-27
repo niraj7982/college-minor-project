@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Manage Complaints</h2>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary mb-3">Back to Dashboard</a>
+
+        <div class="table-responsive shadow rounded"
+            style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.1); padding: 15px;">
+            <table class="table table-hover table-bordered mb-0" style="background: transparent; color: #333;">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Student</th>
+                        <th>Title & Description</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for complaint in complaints %}
+                    <tr>
+                        <td>{{ complaint.date_posted|date:"M d, Y" }}</td>
+                        <td>{{ complaint.student.user.username }} ({{ complaint.student.roll_no }})</td>
+                        <td>
+                            <strong>{{ complaint.title }}</strong><br>
+                            {{ complaint.description|truncatewords:20 }}
+                            {% if complaint.admin_comment %}
+                            <br><small class="text-success"><strong>Admin:</strong> {{ complaint.admin_comment
+                                }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span
+                                class="badge {% if complaint.status == 'Resolved' %}bg-success{% elif complaint.status == 'Rejected' %}bg-danger{% elif complaint.status == 'Solution Provided' %}bg-info{% else %}bg-warning{% endif %}">
+                                {{ complaint.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if complaint.status == 'Pending' %}
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#solveModal{{ complaint.id }}">
+                                Provide Solution
+                            </button>
+                            {% elif complaint.status == 'Solution Provided' %}
+                            <span class="text-muted">Waiting for Student</span>
+                            {% else %}
+                            <span class="text-muted">Closed</span>
+                            {% endif %}
+
+                            <!-- Solve Modal -->
+                            <div class="modal fade" id="solveModal{{ complaint.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Provide Solution for "{{ complaint.title }}"</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <form method="post" action="{% url 'resolve_complaint' complaint.id %}">
+                                            {% csrf_token %}
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Solution / Comment</label>
+                                                    <textarea name="admin_comment" class="form-control" rows="4"
+                                                        required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary">Send Solution</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No complaints found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

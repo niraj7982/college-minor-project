@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="card shadow-lg d-inline-block p-5"
+        style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+        <div class="card-body text-white">
+            <h1 class="display-4 mb-3">Quiz Result</h1>
+            <h3 class="text-white-50">{{ quiz.title }}</h3>
+
+            <hr>
+
+            <h2 class="display-1 fw-bold text-warning">{{ result.score }} / {{ result.total_questions }}</h2>
+            <p class="lead">Your Score</p>
+
+            <div class="mt-4">
+                <a href="{% url 'quiz_list' %}" class="btn btn-outline-primary">Back to Quizzes</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 10px;
+    }
+
+    .bus-icon {
+        font-size: 24px;
+        text-align: center;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Live Bus Tracking</h2>
+                <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+
+            <div class="card shadow"
+                style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+                <div class="card-body p-0">
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <h5>Active Buses:</h5>
+                <ul id="bus-list" class="list-group">
+                    <li class="list-group-item bg-transparent text-white border-secondary">Searching for buses...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    // Initialize Map (Default center: Generic City, e.g. New Delhi)
+    // In a real app, you might want to center on the user's location or the college
+    var map = L.map('map').setView([28.6139, 77.2090], 13);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Custom Bus Icon
+    var busIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png', // Replace with local asset if needed
+        iconSize: [38, 38],
+        iconAnchor: [19, 38],
+        popupAnchor: [0, -30]
+    });
+
+    var markers = {}; // Store markers by bus ID
+
+    function updateLocations() {
+        fetch("{% url 'get_bus_locations' %}")
+            .then(response => response.json())
+            .then(data => {
+                const buses = data.buses;
+                const list = document.getElementById('bus-list');
+                list.innerHTML = '';
+
+                if (buses.length === 0) {
+                    list.innerHTML = '<li class="list-group-item text-muted">No active buses found.</li>';
+                }
+
+                // Remove markers for buses that are no longer active
+                // (Simplification: we just update existing or add new)
+
+                buses.forEach(bus => {
+                    // Update List
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center';
+                    li.innerHTML = `
+                    <div>
+                        <strong>Bus ${bus.bus_number}</strong> (${bus.route})
+                        <br><small class="text-muted">Driver: ${bus.driver_name}</small>
+                    </div>
+                    <span class="badge bg-success">Live</span>
+                `;
+                    list.appendChild(li);
+
+                    // Update Map
+                    if (markers[bus.id]) {
+                        // Update existing marker
+                        markers[bus.id].setLatLng([bus.lat, bus.lng]);
+                    } else {
+                        // Create new marker
+                        var marker = L.marker([bus.lat, bus.lng], { icon: busIcon }).addTo(map);
+                        marker.bindPopup(`<b>Bus ${bus.bus_number}</b><br>Route: ${bus.route}`).openPopup();
+                        markers[bus.id] = marker;
+                    }
+                });
+            })
+            .catch(err => console.error(err));
+    }
+
+    // Poll every 3 seconds
+    setInterval(updateLocations, 3000);
+    updateLocations(); // Initial call
+
+</script>
+{% endblock %}

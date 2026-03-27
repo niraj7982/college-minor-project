@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Assignments</h2>
+        <span class="badge bg-info text-dark">Course: {{ user.student.course }}</span>
+    </div>
+
+    {% if assignments %}
+    <div class="row">
+        {% for assignment in assignments %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow text-dark" style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.1);">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ assignment.subject }}</h5>
+                    <span class="badge bg-warning text-dark">Due: {{ assignment.due_date }}</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ assignment.title }}</h5>
+                    <p class="card-text">{{ assignment.description|truncatewords:20 }}</p>
+
+                    {% if assignment.file %}
+                    <p><a href="{{ assignment.file.url }}" class="text-decoration-none" target="_blank">
+                            <i class="bi bi-paperclip"></i> View Question Paper
+                        </a></p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Posted: {{ assignment.created_at|date:"M d, Y" }}</small>
+                    <a href="{% url 'submit_assignment' assignment.id %}" class="btn btn-primary btn-sm">Submit /
+                        View</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No assignments found for your course ({{ user.student.course }}).
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

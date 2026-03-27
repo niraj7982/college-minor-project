@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Override global table-hover text color for this bright table */
+    .table-hover>tbody>tr:hover>* {
+        color: #212529 !important;
+        background-color: rgba(0, 0, 0, 0.05) !important;
+        box-shadow: none !important;
+    }
+</style>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Assignments</h2>
+        <a href="{% url 'create_assignment' %}" class="btn btn-primary">Create New Assignment</a>
+    </div>
+
+    {% if assignments %}
+    <div class="table-responsive shadow rounded"
+        style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.1); padding: 15px;">
+        <table class="table table-hover align-middle mb-0" style="background: transparent; color: #333;">
+            <thead class="table-dark border-bottom border-secondary">
+                <tr>
+                    <th>Title</th>
+                    <th>Course</th>
+                    <th>Subject</th>
+                    <th>Due Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in assignments %}
+                <tr>
+                    <td>
+                        <strong>{{ assignment.title }}</strong>
+                        {% if assignment.file %}
+                        <a href="{{ assignment.file.url }}" class="badge bg-info text-decoration-none ms-1"
+                            target="_blank">File</a>
+                        {% endif %}
+                    </td>
+                    <td>{{ assignment.course }}</td>
+                    <td>{{ assignment.subject }}</td>
+                    <td>{{ assignment.due_date }}</td>
+                    <td>
+                        <a href="{% url 'view_submissions' assignment.id %}" class="btn btn-sm btn-success">View
+                            Submissions</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No assignments created yet. Click "Create New Assignment" to get started.
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

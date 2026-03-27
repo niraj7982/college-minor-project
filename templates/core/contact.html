@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row section-header text-center mb-5">
+    <div class="col-md-12">
+        <h1 class="display-4 fw-bold">Contact Us</h1>
+        <p class="lead text-muted">We'd love to hear from you.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-body p-5">
+                <form>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" placeholder="Your Name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" placeholder="your@email.com">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-control" placeholder="Subject">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" rows="5" placeholder="How can we help?"></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-primary btn-lg"
+                            onclick="alert('Thank you! Your message has been sent.')">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5 text-center">
+    <div class="col-md-4">
+        <h5>📍 Address</h5>
+        <p>123 College Road, Tech City</p>
+    </div>
+    <div class="col-md-4">
+        <h5>📞 Phone</h5>
+        <p>+91 98765 43210</p>
+    </div>
+    <div class="col-md-4">
+        <h5>✉️ Email</h5>
+        <p>support@digitalcampus.edu</p>
+    </div>
+</div>
+{% endblock %}

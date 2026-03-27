@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow"
+            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-header border-bottom border-light text-white" style="background: rgba(0, 0, 0, 0.2);">
+                <h4>Create Notice</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="text-white">Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-white">Category</label>
+                        <select name="category" class="form-select">
+                            <option value="General">General</option>
+                            <option value="Academic">Academic</option>
+                            <option value="Event">Event</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-white">Content</label>
+                        <textarea name="content" class="form-control" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Post Notice</button>
+                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">Back</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

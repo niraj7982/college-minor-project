@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow mb-4"
+            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 193, 7, 0.3);">
+            <div class="card-header border-bottom border-warning text-white"
+                style="background: rgba(255, 193, 7, 0.2);">
+                <h4>Report Lost/Found Item</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-2">
+                        <label class="form-label small text-light">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-warning w-100">Post Item</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <h3>Lost & Found Board</h3>
+        <div class="row">
+            {% for item in items %}
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 shadow"
+                    style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid {% if item.item_type == 'Lost' %}rgba(220, 53, 69, 0.5){% else %}rgba(40, 167, 69, 0.5){% endif %};">
+                    <div class="card-header text-white"
+                        style="background: {% if item.item_type == 'Lost' %}rgba(220, 53, 69, 0.2){% else %}rgba(40, 167, 69, 0.2){% endif %}; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        {{ item.item_type }}: {{ item.item_name }}
+                    </div>
+                    {% if item.image %}
+                    <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.item_name }}"
+                        style="height: 200px; object-fit: cover; opacity: 0.9;">
+                    {% endif %}
+                    <div class="card-body text-white">
+                        <p class="card-text">{{ item.description }}</p>
+                        <p class="small text-white-50">
+                            <strong>Location:</strong> {{ item.location }}<br>
+                            <strong>Contact:</strong> {{ item.contact_info }}<br>
+                            <strong>Posted by:</strong> {{ item.posted_by.username }} on {{ item.date_posted|date:"M d"
+                            }}
+                        </p>
+
+                        {% if request.user == item.posted_by or request.user.is_admin %}
+                        <div class="mt-2 text-end">
+                            <a href="{% url 'delete_lost_found_item' item.id %}" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Are you sure?');">Delete</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-secondary"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: #fff;">No
+                    items reported yet.</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

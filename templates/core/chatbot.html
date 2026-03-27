@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header border-bottom border-info text-white" style="background: rgba(23, 162, 184, 0.2);">
+                <h4>Campus Assistant</h4>
+            </div>
+            <div class="card-body">
+                {% if response %}
+                <div class="alert alert-success">
+                    <strong>AI:</strong> {{ response }}
+                </div>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" name="query" class="form-control" placeholder="Ask something..." required>
+                        <button class="btn btn-primary" type="submit">Ask</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Student Dashboard</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(40, 167, 69, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Attendance</div>
+            <div class="card-body">
+                <h5 class="card-title">View Attendance</h5>
+                <p class="card-text text-white">Check your attendance percentage.</p>
+                <a href="{% url 'view_attendance' %}" class="btn btn-outline-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(23, 162, 184, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Marks</div>
+            <div class="card-body">
+                <h5 class="card-title">View Marks</h5>
+                <p class="card-text text-white">Check your exam results.</p>
+                <a href="{% url 'view_marks' %}" class="btn btn-outline-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(255, 193, 7, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Notices</div>
+            <div class="card-body">
+                <h5 class="card-title">Latest Notices</h5>
+                <p class="card-text text-white">See important updates.</p>
+                <a href="{% url 'view_notices' %}" class="btn btn-outline-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(220, 53, 69, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Lost & Found</div>
+            <div class="card-body">
+                <h5 class="card-title">Lost Items board</h5>
+                <p class="card-text text-white">Report or find lost items.</p>
+                <a href="{% url 'lost_found_list' %}" class="btn btn-outline-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(52, 58, 64, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Complaints</div>
+            <div class="card-body">
+                <h5 class="card-title">My Complaints</h5>
+                <p class="card-text text-white">Lodge and track complaints.</p>
+                <a href="{% url 'complaint_list' %}" class="btn btn-outline-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(108, 117, 125, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Fees Status</div>
+            <div class="card-body">
+                <h5 class="card-title">My Fees</h5>
+                <p class="card-text text-white">Check fee payment status.</p>
+                <a href="{% url 'fee_status' %}" class="btn btn-outline-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(0, 123, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Feedback</div>
+            <div class="card-body">
+                <h5 class="card-title">Give Feedback</h5>
+                <p class="card-text text-white">Share your experience.</p>
+                <a href="{% url 'feedback_submit' %}" class="btn btn-outline-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(40, 167, 69, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Assignments</div>
+            <div class="card-body">
+                <h5 class="card-title">My Assignments</h5>
+                <p class="card-text text-white">View and submit assignments.</p>
+                <a href="{% url 'student_assignments' %}" class="btn btn-outline-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(108, 117, 125, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Resources Hub</div>
+            <div class="card-body">
+                <h5 class="card-title">Notes & PYQs</h5>
+                <p class="card-text text-white">Download study materials.</p>
+                <a href="{% url 'resource_list' %}" class="btn btn-outline-light btn-sm">Browse</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(0, 123, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Online Test</div>
+            <div class="card-body">
+                <h5 class="card-title">Take Quiz</h5>
+                <p class="card-text text-white">Test your knowledge.</p>
+                <a href="{% url 'quiz_list' %}" class="btn btn-outline-light btn-sm">Start</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(255, 193, 7, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Bus Tracking</div>
+            <div class="card-body">
+                <h5 class="card-title">Live Bus Track</h5>
+                <p class="card-text text-white">See where your bus is.</p>
+                <a href="{% url 'track_bus' %}" class="btn btn-outline-light btn-sm">Track Now</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Alert Modal -->
+<div class="modal fade" id="attendanceAlertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Low Attendance Warning!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Your attendance is below <strong>75%</strong> in the following subjects:</p>
+                <ul class="list-group mb-3">
+                    {% for subject in low_attendance_subjects %}
+                    <li
+                        class="list-group-item d-flex justify-content-between align-items-center list-group-item-danger">
+                        {{ subject.name }}
+                        <span class="badge bg-danger rounded-pill">{{ subject.percentage }}%</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <p>Please ensure you attend regular classes to avoid debarment from exams.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if show_attendance_alert %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var myModal = new bootstrap.Modal(document.getElementById('attendanceAlertModal'));
+        myModal.show();
+    });
+</script>
+{% endif %}
+
+{% endblock %}

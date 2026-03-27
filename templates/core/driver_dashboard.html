@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card text-center shadow"
+                style="background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                <div class="card-header border-bottom border-light text-white" style="background: rgba(0, 0, 0, 0.2);">
+                    <h3>Driver Dashboard</h3>
+                </div>
+                <div class="card-body">
+                    {% if bus %}
+                    <div class="card shadow mb-4"
+                        style="background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <div class="card-header border-bottom border-light text-white"
+                            style="background: rgba(0, 0, 0, 0.2);">
+                            <i class="fas fa-bus me-2"></i> Bus Details
+                        </div>
+                        <div class="card-body">
+                            <h4 class="card-title text-white">My Bus: {{ bus.bus_number }}</h4>
+                            <p class="card-text text-white-50">Route: {{ bus.route_name }}</p>
+                        </div>
+                    </div>
+                    <hr style="border-color: rgba(255, 255, 255, 0.2);">
+
+                    <div id="status-area" class="mb-4">
+                        <h5 class="text-white">Current Status: <span id="status-badge"
+                                class="badge bg-secondary">Offline</span></h5>
+                    </div>
+
+                    <button id="start-btn" class="btn btn-success btn-lg me-2" onclick="startTracking()">Start
+                        Trip</button>
+                    <button id="stop-btn" class="btn btn-danger btn-lg" onclick="stopTracking()" disabled>Stop
+                        Trip</button>
+
+                    <div id="log-area" class="mt-3 text-start small text-white-50"
+                        style="max-height: 150px; overflow-y: auto;"></div>
+
+                    {% else %}
+                    <div class="alert alert-warning"
+                        style="background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.5); color: #fff;">
+                        <h5>No Bus Assigned</h5>
+                        <p>You are not assigned to any bus yet. Please contact Admin.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let watchId = null;
+    const busId = "{{ bus.id }}";
+    const statusBadge = document.getElementById('status-badge');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const logArea = document.getElementById('log-area');
+
+    function log(msg) {
+        const div = document.createElement('div');
+        div.textContent = new Date().toLocaleTimeString() + ": " + msg;
+        logArea.prepend(div);
+    }
+
+    function startTracking() {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+            return;
+        }
+
+        statusBadge.textContent = "Live";
+        statusBadge.className = "badge bg-success";
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        log("Starting trip...");
+
+        // Send initial active status
+        sendUpdate(0, 0, true);
+
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+
+        watchId = navigator.geolocation.watchPosition(success, error, options);
+    }
+
+    function stopTracking() {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+
+        statusBadge.textContent = "Offline";
+        statusBadge.className = "badge bg-secondary";
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        log("Trip stopped.");
+
+        // Send inactive status
+        sendUpdate(0, 0, false);
+    }
+
+    function success(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        log(`Location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        sendUpdate(lat, lng, true);
+    }
+
+    function error(err) {
+        log(`Error: ${err.message}`);
+    }
+
+    function sendUpdate(lat, lng, isActive) {
+        fetch("{% url 'update_location' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                latitude: lat,
+                longitude: lng,
+                is_active: isActive
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') {
+                    log("Server error: " + data.message);
+                }
+            })
+            .catch(err => log("Network error: " + err));
+    }
+</script>
+{% endblock %}

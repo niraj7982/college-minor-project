@@ -1,0 +1,40 @@
+# Environments
+venv/
+.venv/
+env/
+.env/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# VS Code / IDEs
+.vscode/
+.idea/
+*.swp
+
+# Environment variables
+.env
+
+# Migration files (optional: keep migrations but ignore local state if any)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Vercel/Render collected static files (generated at deploy time)
+staticfiles/

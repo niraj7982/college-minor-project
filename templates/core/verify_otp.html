@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow"
+            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-header border-bottom border-light text-white" style="background: rgba(0, 0, 0, 0.2);">
+                <h4>Verify OTP</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-white">Enter the 6-digit code sent to your email.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-warning w-100">Verify Code</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

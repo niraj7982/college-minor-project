@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Custom styles for landing page to enhance base.html theme */
+    .hero-section {
+        background: linear-gradient(135deg, rgba(41, 121, 255, 0.2), rgba(142, 45, 226, 0.2));
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 80px 0;
+        border-radius: 15px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+    }
+
+    .hero-bg-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.1;
+        background-image: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.4) 0%, transparent 20%),
+            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.4) 0%, transparent 20%);
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 40px;
+        font-weight: 700;
+        color: #2c3e50;
+        position: relative;
+        padding-bottom: 15px;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background-color: var(--primary-color);
+    }
+
+    .feature-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .course-card {
+        border-radius: 15px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-box {
+        text-align: center;
+        padding: 20px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+    }
+
+    .cta-section {
+        background-color: rgba(0, 0, 0, 0.2);
+        padding: 60px 0;
+        border-radius: 15px;
+        text-align: center;
+        margin-top: 60px;
+        border: 1px solid var(--glass-border);
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section text-center">
+    <div class="hero-bg-pattern"></div>
+    <div class="container position-relative">
+        <h1 class="display-3 fw-bold mb-3">Welcome to Digital Campus</h1>
+        <p class="lead mb-4 mx-auto" style="max-width: 800px; opacity: 0.9;">
+            Empowering the next generation of leaders through world-class education, innovation, and holistic
+            development.
+            Join us to shape your future.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            {% if not user.is_authenticated %}
+            <a href="{% url 'signup' %}" class="btn btn-light btn-lg text-primary fw-bold shadow-sm px-4">Apply Now</a>
+            <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-4">Student Login</a>
+            {% else %}
+            <a href="{% url 'student_dashboard' %}" class="btn btn-light btn-lg text-primary fw-bold shadow-sm">Go to
+                Dashboard</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Key Stats -->
+<div class="row mb-5 g-4 justify-content-center">
+    <div class="col-md-3 col-6">
+        <div class="stat-box">
+            <div class="stat-number">50+</div>
+            <div class="text-muted">Courses Offered</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-box">
+            <div class="stat-number">10k+</div>
+            <div class="text-muted">Alumni Network</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-box">
+            <div class="stat-number">100%</div>
+            <div class="text-muted">Placement Support</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-box">
+            <div class="stat-number">25+</div>
+            <div class="text-muted">Years of Excellence</div>
+        </div>
+    </div>
+</div>
+
+<!-- About Section -->
+<div class="row align-items-center mb-5 py-4">
+    <div class="col-lg-6 mb-4 mb-lg-0">
+        <h2 class="section-title text-start ms-0 ps-0 mb-4">About Our University</h2>
+        <p class="lead text-muted">A legacy of educational excellence fostering innovation and character since 1990.</p>
+        <p>Digital Campus University stands at the forefront of technological and academic advancement.
+            We are committed to providing an environment that challenges students to think critically,
+            act ethically, and lead effectively in a global society.</p>
+        <p>With state-of-the-art facilities, expert faculty, and a curriculum designed for the future,
+            we ensure every student achieves their fullest potential.</p>
+        <a href="{% url 'about' %}" class="btn btn-outline-primary mt-2">Read More about Us</a>
+    </div>
+    <div class="col-lg-6">
+        <!-- Placeholder for About Image, using a nice colored card for now -->
+        <div class="card bg-secondary text-white p-5 text-center h-100 justify-content-center rounded-3 border-0 shadow-sm"
+            style="min-height: 300px; background: linear-gradient(45deg, var(--secondary-color), var(--bg-gradient-start));">
+            <div>
+                <span style="font-size: 5rem;">🏛️</span>
+                <h4 class="mt-3">Campus Life</h4>
+                <p>Experience a vibrant community of learners.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popular Courses -->
+<div class="mb-5 py-4">
+    <h2 class="section-title">Our Top Programs</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card course-card h-100">
+                <div class="card-body p-4 text-center">
+                    <div class="fs-1 mb-3">💻</div>
+                    <h4 class="card-title">Computer Science (B.Tech)</h4>
+                    <p class="card-text text-muted">Master the future with cutting-edge curriculum in AI, Data Science,
+                        and Software Engineering.</p>
+                    <hr class="my-3">
+                    <ul class="list-unstyled text-start small">
+                        <li>✔️ Full Stack Development</li>
+                        <li>✔️ Cloud Computing Labs</li>
+                        <li>✔️ Industry Internships</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card course-card h-100">
+                <div class="card-body p-4 text-center">
+                    <div class="fs-1 mb-3">📈</div>
+                    <h4 class="card-title">Business Admin (BBA/MBA)</h4>
+                    <p class="card-text text-muted">Develop leadership skills and business acumen to thrive in the
+                        corporate world.</p>
+                    <hr class="my-3">
+                    <ul class="list-unstyled text-start small">
+                        <li>✔️ Leadership Workshops</li>
+                        <li>✔️ Entrepreneurship Cell</li>
+                        <li>✔️ Global Case Studies</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card course-card h-100">
+                <div class="card-body p-4 text-center">
+                    <div class="fs-1 mb-3">🎨</div>
+                    <h4 class="card-title">Digital Arts & Design</h4>
+                    <p class="card-text text-muted">Unleash your creativity with our comprehensive design and multimedia
+                        programs.</p>
+                    <hr class="my-3">
+                    <ul class="list-unstyled text-start small">
+                        <li>✔️ UX/UI Design</li>
+                        <li>✔️ Animation Studio</li>
+                        <li>✔️ Portfolio Development</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Why Choose Us / Features -->
+<div class="mb-5 py-4 rounded-3 p-4" style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);">
+    <h2 class="section-title">Why Choose Digital Campus?</h2>
+    <div class="row g-4 mt-2">
+        <div class="col-md-4">
+            <div class="d-flex align-items-start">
+                <div class="p-3 rounded-circle shadow-sm me-3 text-primary" style="background: rgba(255,255,255,0.1);">
+                    <h3 class="m-0">👨‍🏫</h3>
+                </div>
+                <div>
+                    <h5>Expert Faculty</h5>
+                    <p class="text-muted small">Learn from industry veterans and PhD holders dedicated to your success.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex align-items-start">
+                <div class="p-3 rounded-circle shadow-sm me-3 text-primary" style="background: rgba(255,255,255,0.1);">
+                    <h3 class="m-0">🔬</h3>
+                </div>
+                <div>
+                    <h5>Modern Labs</h5>
+                    <p class="text-muted small">Access to high-tech laboratories and research centers 24/7.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex align-items-start">
+                <div class="p-3 rounded-circle shadow-sm me-3 text-primary" style="background: rgba(255,255,255,0.1);">
+                    <h3 class="m-0">🌐</h3>
+                </div>
+                <div>
+                    <h5>Global Tie-ups</h5>
+                    <p class="text-muted small">International exchange programs and partnerships with top global
+                        universities.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex align-items-start">
+                <div class="p-3 rounded-circle shadow-sm me-3 text-primary" style="background: rgba(255,255,255,0.1);">
+                    <h3 class="m-0">🚀</h3>
+                </div>
+                <div>
+                    <h5>Innovation Hub</h5>
+                    <p class="text-muted small">Incubation center to support student startups and innovative projects.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex align-items-start">
+                <div class="p-3 rounded-circle shadow-sm me-3 text-primary" style="background: rgba(255,255,255,0.1);">
+                    <h3 class="m-0">📚</h3>
+                </div>
+                <div>
+                    <h5>Vast Library</h5>
+                    <p class="text-muted small">Digital and physical library with access to thousands of journals and
+                        books.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex align-items-start">
+                <div class="p-3 rounded-circle shadow-sm me-3 text-primary" style="background: rgba(255,255,255,0.1);">
+                    <h3 class="m-0">🏆</h3>
+                </div>
+                <div>
+                    <h5>Holistic Growth</h5>
+                    <p class="text-muted small">Focus on sports, arts, and extracurriculars for all-round development.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Chatbot Promo (Keeping this as it's a key feature) -->
+<div class="col-md-10 mx-auto mt-5">
+    <div class="card p-4 text-white text-center shadow border-0"
+        style="background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);">
+        <h3>🤖 Need Help? Ask Our AI Assistant</h3>
+        <p>Get instant answers to your admission queries, course details, and campus life.</p>
+        <a href="{% url 'chatbot' %}" class="btn btn-light mt-2 check-btn fw-bold">Chat with AI</a>
+    </div>
+</div>
+
+<!-- Final CTA -->
+<div class="cta-section">
+    <div class="container">
+        <h2 class="mb-3">Ready to Start Your Journey?</h2>
+        <p class="lead text-muted mb-4">Admissions for the 2026 academic session are now open. Don't miss out!</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'signup' %}" class="btn btn-primary btn-lg shadow">Apply Online</a>
+            <a href="{% url 'contact' %}" class="btn btn-outline-dark btn-lg">Contact Us</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

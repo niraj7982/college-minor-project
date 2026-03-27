@@ -1,0 +1,9 @@
+OK: /student/dashboard/
+OK: /attendance/view/
+OK: /fees/
+OK: /feedback/
+OK: /complaint-list/
+OK: /marks/view/
+OK: /notice/view/
+OK: /lost-and-found/
+SUCCESS: All modules checked and reachable.

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow"
+            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-header text-white text-center border-bottom border-light"
+                style="background: rgba(40, 167, 69, 0.2);">
+                <h4>Sign Up</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                    <div class="mb-3" id="div_{{ field.name }}">
+                        <label class="form-label text-white">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-success w-100">Sign Up</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <p class="text-white">Already have an account? <a href="{% url 'login' %}"
+                            class="text-warning">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const roleField = document.querySelector('#id_role');
+        const rollNoDiv = document.querySelector('#div_roll_no');
+        const courseDiv = document.querySelector('#div_course');
+        const deptDiv = document.querySelector('#div_department');
+        const phoneDiv = document.querySelector('#div_phone_number');
+        const licenseDiv = document.querySelector('#div_license_number');
+
+        function toggleFields() {
+            const role = roleField.value;
+            // Reset all
+            rollNoDiv.style.display = 'none';
+            courseDiv.style.display = 'none';
+            deptDiv.style.display = 'none';
+            if (phoneDiv) phoneDiv.style.display = 'none';
+            if (licenseDiv) licenseDiv.style.display = 'none';
+
+            if (role === 'student') {
+                rollNoDiv.style.display = 'block';
+                courseDiv.style.display = 'block';
+                deptDiv.style.display = 'block';
+            } else if (role === 'teacher') {
+                deptDiv.style.display = 'block';
+            } else if (role === 'driver') {
+                if (phoneDiv) phoneDiv.style.display = 'block';
+                if (licenseDiv) licenseDiv.style.display = 'block';
+            }
+        }
+
+        roleField.addEventListener('change', toggleFields);
+        toggleFields(); // Initial check
+    });
+</script>
+{% endblock %}

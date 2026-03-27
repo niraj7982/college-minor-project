@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Campus</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <!-- 
+    =========================================================
+      1. THE NAVIGATION BAR (Top Menu)
+    =========================================================
+    Instead of writing 40 lines of HTML here, we just "include" 
+    the navbar.html file. This makes our code much cleaner!
+    -->
+    {% include 'includes/navbar.html' %}
+
+    <!-- 
+    =========================================================
+      2. THE MAIN CONTENT AREA
+    =========================================================
+    This is where the unique content of each page goes.
+    (Like the login form, or the student dashboard)
+    -->
+    <div class="container main-content" style="min-height: 80vh;">
+        <!-- Show success or error messages (like "Logged in successfully") -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- This 'block content' is a placeholder. 
+             Other pages will inject their specific HTML right here! -->
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- 
+    =========================================================
+      3. THE FOOTER (Bottom Section)
+    =========================================================
+    We also "include" the footer from its own separate file.
+    -->
+    {% include 'includes/footer.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Teacher Dashboard</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(0, 123, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Attendance</div>
+            <div class="card-body">
+                <h5 class="card-title">Mark Attendance</h5>
+                <p class="card-text text-white">Update student attendance.</p>
+                <a href="{% url 'take_attendance' %}" class="btn btn-outline-light btn-sm">Take Attendance</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(108, 117, 125, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Marks</div>
+            <div class="card-body">
+                <h5 class="card-title">Upload Marks</h5>
+                <p class="card-text text-white">Enter student marks.</p>
+                <a href="{% url 'add_marks' %}" class="btn btn-outline-light btn-sm">Enter Marks</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(52, 58, 64, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Notices</div>
+            <div class="card-body">
+                <h5 class="card-title">Post Notice</h5>
+                <p class="card-text text-white">Create a new announcement.</p>
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'create_notice' %}" class="btn btn-outline-light btn-sm">Post Notice</a>
+                    <a href="{% url 'view_notices' %}" class="btn btn-outline-light btn-sm">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(255, 193, 7, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Lost & Found</div>
+            <div class="card-body">
+                <h5 class="card-title">Lost Items</h5>
+                <p class="card-text text-white">View reported lost items.</p>
+                <a href="{% url 'lost_found_list' %}" class="btn btn-outline-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(23, 162, 184, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Assignments</div>
+            <div class="card-body">
+                <h5 class="card-title">Manage Assignments</h5>
+                <p class="card-text text-white">Create and view assignments.</p>
+                <a href="{% url 'teacher_assignments' %}" class="btn btn-outline-light btn-sm">Manage</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(0, 123, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Resources Hub</div>
+            <div class="card-body">
+                <h5 class="card-title">Upload Materials</h5>
+                <p class="card-text text-white">Share notes and papers.</p>
+                <a href="{% url 'resource_list' %}" class="btn btn-outline-light btn-sm">Upload</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(40, 167, 69, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary">Online Test</div>
+            <div class="card-body">
+                <h5 class="card-title">Create Quiz</h5>
+                <p class="card-text text-white">Set up online tests.</p>
+                <a href="{% url 'quiz_list' %}" class="btn btn-outline-light btn-sm">Create</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

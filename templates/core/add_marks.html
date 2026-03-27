@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow"
+            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-header border-bottom border-light text-white" style="background: rgba(0, 0, 0, 0.2);">
+                <h4>Add Marks</h4>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="text-white">Student Roll No</label>
+                        <input type="text" name="roll_no" class="form-control" placeholder="e.g. 101" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-white">Subject</label>
+                        <input type="text" name="subject" class="form-control" placeholder="e.g. Mathematics" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-white">Marks Obtained</label>
+                        <input type="number" name="marks_obtained" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-white">Total Marks</label>
+                        <input type="number" name="total_marks" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-white">Exam Type</label>
+                        <select name="exam_type" class="form-control">
+                            <option value="Mid Term">Mid Term</option>
+                            <option value="Final">Final</option>
+                            <option value="Assignment">Assignment</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Marks</button>
+                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">Back</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

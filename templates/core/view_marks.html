@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>{{ heading }}</h2>
+        <a href="{% if is_admin %}{% url 'admin_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
+            class="btn btn-secondary mb-3">Back to Dashboard</a>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Exam Type</th>
+                        <th>Obtained</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mark in marks %}
+                    <tr>
+                        <td>{{ mark.subject }}</td>
+                        <td>{{ mark.exam_type }}</td>
+                        <td>{{ mark.marks_obtained }}</td>
+                        <td>{{ mark.total_marks }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No marks found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
