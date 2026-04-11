@@ -157,7 +157,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # WhiteNoise for serving static files in production (not local dev)
 if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
