@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <div class="row">
     <div class="col-md-12">
         <h2>Manage Complaints</h2>
         <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary mb-3">Back to Dashboard</a>
 
-        <div class="table-responsive shadow rounded"
-            style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.1); padding: 15px;">
-            <table class="table table-hover table-bordered mb-0" style="background: transparent; color: #333;">
+        <div class="table-responsive shadow-sm"
+            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px;">
+            <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
                 <thead class="table-dark">
                     <tr>
                         <th>Date</th>
@@ -26,10 +27,6 @@
                         <td>
                             <strong>{{ complaint.title }}</strong><br>
                             {{ complaint.description|truncatewords:20 }}
-                            {% if complaint.admin_comment %}
-                            <br><small class="text-success"><strong>Admin:</strong> {{ complaint.admin_comment
-                                }}</small>
-                            {% endif %}
                         </td>
                         <td>
                             <span

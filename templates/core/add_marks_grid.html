@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Live Grid: Add Marks</h2>
+        </div>
+        <div class="card shadow mb-4" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-body text-white">
+                <div class="row">
+                    <div class="col-md-3">
+                        <small class="text-muted text-uppercase fw-bold">Course</small>
+                        <p class="mb-0 fs-5">{{ course }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted text-uppercase fw-bold">Subject</small>
+                        <p class="mb-0 fs-5">{{ subject }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted text-uppercase fw-bold">Exam Type</small>
+                        <p class="mb-0 fs-5">{{ exam_type }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted text-uppercase fw-bold">Total Marks</small>
+                        <p class="mb-0 fs-5">{{ total_marks }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form action="{% url 'save_marks' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="course" value="{{ course }}">
+            <input type="hidden" name="subject" value="{{ subject }}">
+            <input type="hidden" name="total_marks" value="{{ total_marks }}">
+            <input type="hidden" name="exam_type" value="{{ exam_type }}">
+
+            <div class="table-responsive shadow rounded"
+                style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px;">
+                <table class="table table-dark table-hover table-bordered mb-0 align-middle" style="background: transparent;">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%">Roll No</th>
+                            <th style="width: 35%">Name</th>
+                            <th style="width: 50%">Marks Obtained</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.roll_no }}</td>
+                            <td class="fw-medium">{{ student.user.display_name }}</td>
+                            <td>
+                                <input type="hidden" name="all_student_ids" value="{{ student.user.id }}">
+                                <div class="input-group" style="max-width: 200px;">
+                                    <input type="number" 
+                                           name="marks_{{ student.user.id }}" 
+                                           class="form-control bg-dark text-white border-secondary" 
+                                           placeholder="Enter marks"
+                                           min="0"
+                                           max="{{ total_marks }}"
+                                           tabindex="{{ forloop.counter }}">
+                                    <span class="input-group-text bg-secondary text-white border-secondary">/ {{ total_marks }}</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-warning">
+                                <i class="bi bi-exclamation-triangle fs-4 d-block mb-2"></i>
+                                No students found enrolled in <strong>{{ course }}</strong>.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 mb-5 d-flex gap-2">
+                <button type="submit" class="btn btn-success btn-lg px-4 fw-bold">Save All Marks</button>
+                <a href="{% url 'add_marks' %}" class="btn btn-secondary btn-lg">Back / Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

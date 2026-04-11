@@ -16,7 +16,10 @@
             <div class="card-body">
                 <h5 class="card-title">Mark Attendance</h5>
                 <p class="card-text text-white">Update student attendance.</p>
-                <a href="{% url 'take_attendance' %}" class="btn btn-outline-light btn-sm">Take Attendance</a>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'attendance_method_select' %}" class="btn btn-outline-light btn-sm">📋 Take Attendance</a>
+                    <a href="{% url 'upload_attendance' %}" class="btn btn-light btn-sm text-primary fw-bold">📁 Upload File</a>
+                </div>
             </div>
         </div>
     </div>

@@ -8,6 +8,29 @@
         background-color: rgba(0, 0, 0, 0.05) !important;
         box-shadow: none !important;
     }
+    
+    /* Improve visibility of tabs for glassmorphism theme */
+    .nav-tabs {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .nav-tabs .nav-link {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-weight: 500;
+        border: 1px solid transparent;
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #fff !important;
+        border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.1) transparent;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .nav-tabs .nav-link.active {
+        color: #fff !important;
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(10px);
+        border-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.2) transparent !important;
+    }
 </style>
 <div class="row mb-4">
     <div class="col-md-8">
@@ -27,8 +50,7 @@
     {% if is_teacher %}
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button"
-            role="tab">Pending Approvals {% if pending_resources %}<span class="badge bg-danger">{{
-                pending_resources.count }}</span>{% endif %}</button>
+            role="tab">Pending Approvals {% if pending_resources %}<span class="badge bg-danger">{{ pending_resources.count }}</span>{% endif %}</button>
     </li>
     {% endif %}
 </ul>

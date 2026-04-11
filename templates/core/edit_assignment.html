@@ -1,0 +1,379 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body { font-family: 'Inter', sans-serif; }
+
+  .page-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem 3rem;
+    min-height: calc(100vh - 80px);
+  }
+
+  .form-container {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  /* ── Page Title ── */
+  .page-title {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .page-title .title-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 0.9rem;
+    box-shadow: 0 8px 25px rgba(99,102,241,0.4);
+  }
+  .page-title h2 {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.02em;
+  }
+  .page-title p {
+    color: rgba(165,180,252,0.75);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  /* ── Card ── */
+  .glass-card {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 24px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04);
+    overflow: hidden;
+  }
+
+  .card-header-area {
+    background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.18));
+    border-bottom: 1px solid rgba(99,102,241,0.25);
+    padding: 1.3rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .card-header-area .header-icon {
+    font-size: 1.3rem;
+  }
+  .card-header-area h4 {
+    margin: 0;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+  }
+  .card-header-area small {
+    color: rgba(165,180,252,0.7);
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 1px;
+  }
+
+  /* ── Form Body ── */
+  .card-form-body {
+    padding: 2rem;
+  }
+
+  /* Section dividers */
+  .form-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(165,180,252,0.55);
+    margin-bottom: 1rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .form-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(99,102,241,0.15);
+  }
+
+  /* Labels */
+  .field-label {
+    display: block;
+    color: #c7d2fe;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.45rem;
+  }
+  .field-label span {
+    color: #f87171;
+    margin-left: 2px;
+  }
+
+  /* Override Bootstrap form-control defaults that fight dark theme */
+  .card-form-body .form-control {
+    background: rgba(30, 41, 59, 0.8) !important;
+    border: 1px solid rgba(99,102,241,0.3) !important;
+    border-radius: 12px !important;
+    color: #e2e8f0 !important;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+  }
+  .card-form-body .form-control:focus {
+    background: rgba(30, 41, 59, 0.95) !important;
+    border-color: rgba(99,102,241,0.65) !important;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.14) !important;
+    color: #e2e8f0 !important;
+  }
+  .card-form-body .form-control::placeholder {
+    color: rgba(148,163,184,0.4) !important;
+  }
+  
+  /* Checkbox styling */
+  .card-form-body .form-check-input {
+      background-color: rgba(30, 41, 59, 0.8);
+      border-color: rgba(99,102,241,0.5);
+  }
+  .card-form-body .form-check-input:checked {
+      background-color: #6366f1;
+      border-color: #6366f1;
+  }
+
+  /* File upload button */
+  .card-form-body input[type="file"].form-control {
+    padding: 0.55rem 0.9rem;
+  }
+  /* Date picker icon colour */
+  .card-form-body input[type="date"].form-control::-webkit-calendar-picker-indicator {
+    filter: invert(0.65) sepia(1) saturate(3) hue-rotate(200deg);
+    cursor: pointer;
+  }
+
+  /* Validation error */
+  .field-error {
+    color: #f87171;
+    font-size: 0.79rem;
+    margin-top: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  /* Help text */
+  .field-hint {
+    color: rgba(148,163,184,0.55);
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+  }
+
+  /* ── Action buttons ── */
+  .form-actions {
+    display: flex;
+    gap: 0.85rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+  .btn-submit {
+    flex: 1;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 13px;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.22s;
+    box-shadow: 0 5px 18px rgba(99,102,241,0.38);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-width: 180px;
+  }
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(99,102,241,0.5);
+  }
+  .btn-submit:active { transform: translateY(0); }
+
+  .btn-cancel {
+    background: rgba(148,163,184,0.08);
+    color: rgba(148,163,184,0.75);
+    border: 1px solid rgba(148,163,184,0.2);
+    border-radius: 13px;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .btn-cancel:hover {
+    color: #e2e8f0;
+    border-color: rgba(148,163,184,0.4);
+    background: rgba(148,163,184,0.12);
+  }
+</style>
+
+<div class="page-wrapper">
+  <div class="form-container">
+
+    <!-- Page Title -->
+    <div class="page-title">
+      <div class="title-icon">✏️</div>
+      <h2>Edit Assignment</h2>
+      <p>Modify the assignment details and deadlines</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="glass-card">
+
+      <!-- Card Header -->
+      <div class="card-header-area">
+        <span class="header-icon">📋</span>
+        <div>
+          <h4>Assignment Details</h4>
+          <small>Change fields below</small>
+        </div>
+      </div>
+
+      <!-- Form Body -->
+      <div class="card-form-body">
+        <form method="post" enctype="multipart/form-data" id="assignmentForm">
+          {% csrf_token %}
+
+          <!-- Basic Info Section -->
+          <div class="form-section-label">Basic Information</div>
+
+          <div class="mb-3">
+            <label class="field-label" for="id_title">Assignment Title <span>*</span></label>
+            {{ form.title }}
+            {% if form.title.errors %}
+              {% for error in form.title.errors %}
+                <div class="field-error">⚠️ {{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="field-label" for="id_description">Description / Instructions <span>*</span></label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              {% for error in form.description.errors %}
+                <div class="field-error">⚠️ {{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <!-- Target Section -->
+          <div class="form-section-label" style="margin-top:1.5rem;">Target Class</div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="field-label" for="id_course">Course / Class <span>*</span></label>
+              {{ form.course }}
+              {% if form.course.errors %}
+                {% for error in form.course.errors %}
+                  <div class="field-error">⚠️ {{ error }}</div>
+                {% endfor %}
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="field-label" for="id_subject">Subject <span>*</span></label>
+              {{ form.subject }}
+              {% if form.subject.errors %}
+                {% for error in form.subject.errors %}
+                  <div class="field-error">⚠️ {{ error }}</div>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Deadline Section -->
+          <div class="form-section-label" style="margin-top:1.5rem;">Deadline, Acceptance & Attachment</div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="field-label" for="id_due_date">Due Date <span>*</span></label>
+              {{ form.due_date }}
+              {% if form.due_date.errors %}
+                {% for error in form.due_date.errors %}
+                  <div class="field-error">⚠️ {{ error }}</div>
+                {% endfor %}
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="field-label" for="id_file">Attachment <span style="color:rgba(148,163,184,0.5); font-weight:400;">(optional)</span></label>
+              {{ form.file }}
+              <div class="field-hint">PDF, Word, or image — max 10 MB</div>
+              {% if form.file.errors %}
+                {% for error in form.file.errors %}
+                  <div class="field-error">⚠️ {{ error }}</div>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+          
+          <!-- New Late Submission Section inside a row to look nice -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-12">
+               <div class="form-check mt-2" style="background: rgba(30, 41, 59, 0.4); border-radius: 12px; padding: 1rem 1rem 1rem 2.8rem; border: 1px solid rgba(99,102,241,0.2);">
+                    {{ form.accept_late_submissions }}
+                    <label class="form-check-label field-label mb-0 ms-2" for="id_accept_late_submissions">
+                        Accept Late Submissions
+                        <div class="field-hint mb-0" style="margin-top: 2px;">If enabled, students can submit even after the due date has passed.</div>
+                    </label>
+                    {% if form.accept_late_submissions.errors %}
+                        {% for error in form.accept_late_submissions.errors %}
+                            <div class="field-error">⚠️ {{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="submit" class="btn-submit" id="submitBtn">
+              <span>✅</span> Save Changes
+            </button>
+            <a href="{% url 'teacher_assignments' %}" class="btn-cancel">
+              ← Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Submit loading state
+  document.getElementById('assignmentForm').addEventListener('submit', function () {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin 0.6s linear infinite"></span> Saving...';
+  });
+</script>
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}

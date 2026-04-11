@@ -10,6 +10,7 @@ class User(AbstractUser):
         ('driver', 'Driver'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
+    profile_pic = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     def is_student(self):
         return self.role == 'student'
@@ -22,6 +23,11 @@ class User(AbstractUser):
 
     def is_driver(self):
         return self.role == 'driver'
+
+    @property
+    def display_name(self):
+        full_name = f"{self.first_name} {self.last_name}".strip()
+        return full_name if full_name else self.username
 
     def save(self, *args, **kwargs):
         if self.is_superuser:
@@ -72,11 +78,18 @@ class Attendance(models.Model):
     )
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     subject = models.CharField(max_length=100)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=None, null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+
+    def save(self, *args, **kwargs):
+        if self.date is None:
+            from datetime import date as _date
+            self.date = _date.today()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.student.user.username} - {self.subject} - {self.status}"
+
 
 class Marks(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -97,6 +110,7 @@ class Notice(models.Model):
     title = models.CharField(max_length=200)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='General')
     content = models.TextField()
+    file = models.FileField(upload_to='notices/', blank=True, null=True)
     posted_by = models.ForeignKey(User, on_delete=models.CASCADE)
     date_posted = models.DateTimeField(auto_now_add=True)
     
@@ -184,10 +198,16 @@ class Assignment(models.Model):
     description = models.TextField()
     due_date = models.DateField()
     file = models.FileField(upload_to='assignments/', blank=True, null=True)
+    accept_late_submissions = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.title} ({self.subject})"
+
+    @property
+    def is_closed(self):
+        from datetime import date
+        return date.today() > self.due_date and not self.accept_late_submissions
 
 class Submission(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
@@ -250,3 +270,19 @@ class QuizResult(models.Model):
 
     def __str__(self):
         return f"{self.student.user.username} - {self.quiz.title}: {self.score}/{self.total_questions}"
+
+class AttendanceUpload(models.Model):
+    """Stores metadata about attendance files uploaded by teachers."""
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=100)
+    course = models.CharField(max_length=100)
+    attendance_date = models.DateField()
+    file = models.FileField(upload_to='attendance_uploads/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    records_imported = models.IntegerField(default=0)
+    records_skipped = models.IntegerField(default=0)
+    error_log = models.TextField(blank=True, default='')
+
+    def __str__(self):
+        return f"{self.teacher.user.username} - {self.subject} ({self.attendance_date})"
+

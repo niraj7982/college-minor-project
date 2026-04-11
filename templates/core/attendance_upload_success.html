@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body { font-family: 'Inter', sans-serif; }
+
+  .success-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 3rem 1rem;
+    min-height: calc(100vh - 80px);
+  }
+
+  .success-container { width: 100%; max-width: 680px; }
+
+  /* Hero badge */
+  .result-hero {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .result-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #059669, #34d399);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    margin: 0 auto 1rem;
+    box-shadow: 0 0 30px rgba(52,211,153,0.4);
+    animation: pop 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+  }
+  @keyframes pop {
+    from { transform: scale(0.3); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .result-hero h2 { color: #fff; font-weight: 700; font-size: 1.7rem; margin-bottom: 0.25rem; }
+  .result-hero p  { color: rgba(165,180,252,0.75); font-size: 0.9rem; }
+
+  /* Stat cards */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: rgba(15,23,42,0.82);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 16px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    backdrop-filter: blur(12px);
+  }
+  .stat-card .stat-num {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .stat-card .stat-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+  }
+  .stat-imported .stat-num { color: #34d399; }
+  .stat-imported { border-color: rgba(52,211,153,0.25); }
+  .stat-skipped  .stat-num { color: #f87171; }
+  .stat-skipped  { border-color: rgba(248,113,113,0.25); }
+  .stat-total    .stat-num { color: #a5b4fc; }
+  .stat-total    { border-color: rgba(99,102,241,0.25); }
+
+  /* Glass card */
+  .glass-card {
+    background: rgba(15,23,42,0.82);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+  }
+  .info-list { list-style: none; padding: 0; margin: 0; }
+  .info-list li {
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #cbd5e1;
+    font-size: 0.88rem;
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list li .label { color: rgba(165,180,252,0.7); font-size: 0.8rem; }
+  .info-list li .value { color: #e2e8f0; font-weight: 500; }
+
+  /* Error log */
+  .error-section-header {
+    padding: 1rem 1.5rem;
+    background: rgba(239,68,68,0.1);
+    border-bottom: 1px solid rgba(239,68,68,0.2);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fca5a5;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .error-log-list { padding: 0.75rem 1.5rem; }
+  .error-log-item {
+    color: #fca5a5;
+    font-size: 0.82rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(239,68,68,0.1);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .error-log-item:last-child { border-bottom: none; }
+
+  /* Buttons */
+  .action-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+  .btn-primary-custom {
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.45); color:#fff; }
+  .btn-outline-custom {
+    background: rgba(99,102,241,0.1);
+    color: #a5b4fc;
+    border: 1px solid rgba(99,102,241,0.35);
+    border-radius: 12px;
+    padding: 0.7rem 1.5rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .btn-outline-custom:hover { background: rgba(99,102,241,0.22); color: #c7d2fe; }
+</style>
+
+<div class="success-wrapper">
+  <div class="success-container">
+
+    <!-- Hero -->
+    <div class="result-hero">
+      {% if upload.records_imported > 0 %}
+        <div class="result-icon">✅</div>
+        <h2>Attendance Uploaded!</h2>
+      {% else %}
+        <div class="result-icon" style="background:linear-gradient(135deg,#dc2626,#f87171);">⚠️</div>
+        <h2>Upload Completed with Issues</h2>
+      {% endif %}
+      <p>{{ upload.subject }} &nbsp;·&nbsp; {{ upload.course }} &nbsp;·&nbsp; {{ upload.attendance_date }}</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card stat-imported">
+        <div class="stat-num">{{ upload.records_imported }}</div>
+        <div class="stat-label">✅ Imported</div>
+      </div>
+      <div class="stat-card stat-skipped">
+        <div class="stat-num">{{ upload.records_skipped }}</div>
+        <div class="stat-label">⚠️ Skipped</div>
+      </div>
+      <div class="stat-card stat-total">
+        <div class="stat-num">{{ upload.records_imported|add:upload.records_skipped }}</div>
+        <div class="stat-label">📋 Total Rows</div>
+      </div>
+    </div>
+
+    <!-- Upload Info -->
+    <div class="glass-card">
+      <ul class="info-list">
+        <li>
+          <span class="label">📗 Subject</span>
+          <span class="value">{{ upload.subject }}</span>
+        </li>
+        <li>
+          <span class="label">🎓 Course</span>
+          <span class="value">{{ upload.course }}</span>
+        </li>
+        <li>
+          <span class="label">📅 Attendance Date</span>
+          <span class="value">{{ upload.attendance_date }}</span>
+        </li>
+        <li>
+          <span class="label">⏰ Uploaded At</span>
+          <span class="value">{{ upload.uploaded_at|date:"d M Y, h:i A" }}</span>
+        </li>
+        <li>
+          <span class="label">📎 File</span>
+          <span class="value">{{ upload.file.name|slice:"20:" }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Error Log -->
+    {% if error_lines %}
+    <div class="glass-card">
+      <div class="error-section-header">
+        ⚠️ Skipped Rows ({{ upload.records_skipped }} issues found)
+      </div>
+      <div class="error-log-list">
+        {% for err in error_lines %}
+          <div class="error-log-item">
+            <span>⚡</span>
+            <span>{{ err }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="action-row">
+      <a href="{% url 'upload_attendance' %}" class="btn-primary-custom">
+        📁 Upload Another File
+      </a>
+      <a href="{% url 'take_attendance' %}" class="btn-outline-custom">
+        ✏️ Mark Manually
+      </a>
+      <a href="{% url 'attendance_upload_history' %}" class="btn-outline-custom">
+        📜 Upload History
+      </a>
+      <a href="{% url 'teacher_dashboard' %}" class="btn-outline-custom">
+        ← Dashboard
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

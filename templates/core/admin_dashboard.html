@@ -115,5 +115,16 @@
             </div>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="card text-white mb-3 shadow"
+            style="background: rgba(0, 123, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3);">
+            <div class="card-header border-bottom border-secondary"><i class="fas fa-money-bill-wave"></i> Fees Management</div>
+            <div class="card-body">
+                <h5 class="card-title">Manage Fees</h5>
+                <p class="card-text text-light">Assign student fees.</p>
+                <a href="{% url 'admin_fee_list' %}" class="btn btn-outline-light btn-sm">Manage</a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

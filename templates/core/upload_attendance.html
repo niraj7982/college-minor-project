@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body { font-family: 'Inter', sans-serif; }
+
+  .upload-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem 3rem;
+    min-height: calc(100vh - 80px);
+  }
+
+  .upload-container {
+    width: 100%;
+    max-width: 760px;
+  }
+
+  /* Page title */
+  .page-title {
+    text-align: center;
+    margin-bottom: 1.75rem;
+  }
+  .page-title h2 {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+  }
+  .page-title p {
+    color: rgba(165,180,252,0.8);
+    font-size: 0.9rem;
+  }
+
+  /* Method tabs */
+  .method-tabs {
+    display: flex;
+    gap: 0;
+    background: rgba(15,23,42,0.6);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 14px;
+    padding: 5px;
+    margin-bottom: 2rem;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .method-tab {
+    padding: 0.6rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    color: rgba(165,180,252,0.7);
+    border: none;
+    background: transparent;
+  }
+  .method-tab:hover { color: #a5b4fc; }
+  .method-tab.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.35);
+  }
+
+  /* Card */
+  .glass-card {
+    background: rgba(15,23,42,0.82);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 22px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    overflow: hidden;
+  }
+  .card-header-grad {
+    background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.15));
+    border-bottom: 1px solid rgba(99,102,241,0.25);
+    padding: 1.25rem 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .card-header-grad .icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .card-header-grad h5 {
+    margin: 0;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .card-header-grad small { color: #a5b4fc; font-size: 0.78rem; }
+  .card-body-pad { padding: 1.75rem; }
+
+  /* Form labels */
+  .form-label-custom {
+    color: #c7d2fe;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .form-control-custom {
+    background: rgba(30,41,59,0.75);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 10px;
+    color: #e2e8f0;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+  }
+  .form-control-custom:focus {
+    border-color: rgba(99,102,241,0.65);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  }
+  .form-control-custom::placeholder { color: rgba(148,163,184,0.4); }
+
+  /* Drag-drop zone */
+  .drop-zone {
+    border: 2px dashed rgba(99,102,241,0.45);
+    border-radius: 16px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: rgba(99,102,241,0.05);
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: rgba(99,102,241,0.8);
+    background: rgba(99,102,241,0.1);
+  }
+  .drop-zone .drop-icon {
+    font-size: 2.8rem;
+    margin-bottom: 0.75rem;
+  }
+  .drop-zone p {
+    color: rgba(148,163,184,0.75);
+    font-size: 0.88rem;
+    margin: 0;
+  }
+  .drop-zone strong { color: #a5b4fc; }
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .file-chosen {
+    margin-top: 0.6rem;
+    font-size: 0.82rem;
+    color: #34d399;
+    font-weight: 500;
+  }
+
+  /* Format guide */
+  .format-guide {
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0 0;
+  }
+  .format-guide h6 {
+    color: #a5b4fc;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.6rem;
+  }
+  .format-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+  }
+  .format-table th {
+    color: #fff;
+    background: rgba(99,102,241,0.35);
+    padding: 0.45rem 0.75rem;
+    text-align: left;
+  }
+  .format-table td {
+    color: #cbd5e1;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .format-table tr:last-child td { border-bottom: none; }
+  .badge-present {
+    background: rgba(52,211,153,0.2);
+    color: #34d399;
+    border-radius: 6px;
+    padding: 1px 7px;
+    font-size: 0.78rem;
+  }
+  .badge-absent {
+    background: rgba(248,113,113,0.2);
+    color: #f87171;
+    border-radius: 6px;
+    padding: 1px 7px;
+    font-size: 0.78rem;
+  }
+
+  /* Buttons */
+  .btn-upload {
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.8rem 2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.35);
+  }
+  .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.45); }
+
+  .btn-template {
+    background: rgba(99,102,241,0.12);
+    color: #a5b4fc;
+    border: 1px solid rgba(99,102,241,0.35);
+    border-radius: 12px;
+    padding: 0.7rem 1.4rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: inherit;
+  }
+  .btn-template:hover { background: rgba(99,102,241,0.22); color: #c7d2fe; }
+
+  .btn-back {
+    color: rgba(148,163,184,0.7);
+    background: none;
+    border: 1px solid rgba(148,163,184,0.2);
+    border-radius: 10px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .btn-back:hover { color: #e2e8f0; border-color: rgba(148,163,184,0.4); }
+
+  /* Alerts */
+  .alert-error {
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 12px;
+    padding: 0.85rem 1.1rem;
+    color: #fca5a5;
+    font-size: 0.88rem;
+    margin-bottom: 1.25rem;
+  }
+</style>
+
+<div class="upload-wrapper">
+  <div class="upload-container">
+
+    <!-- Page Title -->
+    <div class="page-title">
+      <h2>📋 Attendance Management</h2>
+      <p>Choose how you want to record today's attendance</p>
+    </div>
+
+    <!-- Method Tabs -->
+    <div class="method-tabs">
+      <a href="{% url 'take_attendance' %}" class="method-tab">✏️ Mark Manually</a>
+      <span class="method-tab active">📁 Upload File</span>
+    </div>
+
+    <!-- Error Messages -->
+    {% if messages %}
+      {% for msg in messages %}
+        {% if msg.tags == 'error' %}
+          <div class="alert-error">⚠️ {{ msg }}</div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <!-- Upload Card -->
+    <div class="glass-card">
+      <div class="card-header-grad">
+        <div class="icon">📁</div>
+        <div>
+          <h5>Upload Attendance File</h5>
+          <small>Import Excel (.xlsx) or CSV attendance in seconds</small>
+        </div>
+        <a href="{% url 'download_attendance_template' %}" class="btn-template ms-auto" title="Download a pre-formatted template">
+          ⬇️ Download Template
+        </a>
+      </div>
+
+      <div class="card-body-pad">
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+          {% csrf_token %}
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label-custom">📗 Subject</label>
+              <input type="text" name="subject" class="form-control-custom"
+                     placeholder="e.g. Data Structures" required
+                     value="{{ request.POST.subject }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label-custom">🎓 Course / Class</label>
+              <input type="text" name="course" class="form-control-custom"
+                     placeholder="e.g. B.Tech CS 2nd Year" required
+                     value="{{ request.POST.course }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label-custom">📅 Attendance Date</label>
+              <input type="date" name="attendance_date" id="attendanceDateInput"
+                     class="form-control-custom" required
+                     value="{{ request.POST.attendance_date }}">
+            </div>
+          </div>
+
+          <!-- Drag & Drop Zone -->
+          <label class="form-label-custom">📎 Attendance File (.xlsx or .csv)</label>
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-icon">📂</div>
+            <p>
+              <strong>Click to browse</strong> or drag & drop your file here<br>
+              Supported: <strong>.xlsx</strong> (Excel) &nbsp;·&nbsp; <strong>.csv</strong>
+            </p>
+            <div class="file-chosen" id="fileChosen" style="display:none;"></div>
+            <input type="file" name="attendance_file" id="fileInput" accept=".xlsx,.csv" required>
+          </div>
+
+          <!-- Format Guide -->
+          <div class="format-guide">
+            <h6>📌 Required File Format</h6>
+            <table class="format-table">
+              <thead>
+                <tr><th>roll_no</th><th>status</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>101</td><td><span class="badge-present">Present</span></td></tr>
+                <tr><td>102</td><td><span class="badge-absent">Absent</span></td></tr>
+                <tr><td>103</td><td><span class="badge-present">Present</span></td></tr>
+              </tbody>
+            </table>
+            <p style="color:rgba(148,163,184,0.65); font-size:0.78rem; margin-top:0.6rem; margin-bottom:0;">
+              ℹ️ Column names must be exactly <code style="color:#a5b4fc">roll_no</code> and <code style="color:#a5b4fc">status</code>.
+              Unknown roll numbers are skipped and logged. Download the template above to get started quickly.
+            </p>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex align-items-center gap-3 mt-4 flex-wrap">
+            <button type="submit" class="btn-upload" id="submitBtn">
+              ⬆️ Upload &amp; Import Attendance
+            </button>
+            <a href="{% url 'attendance_upload_history' %}" class="btn-template">
+              📜 View Upload History
+            </a>
+            <a href="{% url 'teacher_dashboard' %}" class="btn-back ms-auto">
+              ← Back to Dashboard
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Set today's date as default
+  const dateInput = document.getElementById('attendanceDateInput');
+  if (!dateInput.value) {
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+  }
+
+  // File picker UI
+  const fileInput = document.getElementById('fileInput');
+  const fileChosen = document.getElementById('fileChosen');
+  const dropZone = document.getElementById('dropZone');
+
+  fileInput.addEventListener('change', function () {
+    if (this.files && this.files[0]) {
+      showFile(this.files[0].name);
+    }
+  });
+
+  function showFile(name) {
+    fileChosen.textContent = '✅ Selected: ' + name;
+    fileChosen.style.display = 'block';
+  }
+
+  // Drag & Drop
+  dropZone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    this.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', function () {
+    this.classList.remove('drag-over');
+  });
+  dropZone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    const dt = e.dataTransfer;
+    if (dt.files && dt.files[0]) {
+      fileInput.files = dt.files;
+      showFile(dt.files[0].name);
+    }
+  });
+
+  // Submit button state
+  document.getElementById('uploadForm').addEventListener('submit', function () {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Processing...';
+  });
+</script>
+{% endblock %}

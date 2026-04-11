@@ -9,16 +9,30 @@ need to change this one single file!
 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <!-- Brand/Logo Link -->
-        <a class="navbar-brand fw-bold" href="#">Digital Campus</a>
+        <!-- Left side: Hamburger and Brand -->
+        <div class="d-flex align-items-center">
+            <button class="navbar-toggler border-0 px-2 me-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand fw-bold mb-0" href="{% url 'home' %}">Digital Campus</a>
+        </div>
 
-        <!-- Toggle button for mobile devices (the 'hamburger' menu) -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <!-- Right side: Profile image (always visible) -->
+        {% if user.is_authenticated %}
+        <div class="d-flex align-items-center ms-auto order-lg-last">
+            <a href="{% url 'user_profile' %}" class="text-decoration-none d-flex align-items-center">
+                <span class="text-white d-none d-lg-block me-3 fw-medium">Hello, {{ user.display_name }}</span>
+                {% if user.profile_pic %}
+                    <img src="{{ user.profile_pic.url }}" alt="Profile" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2);">
+                {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ user.display_name }}&background=6366f1&color=fff&size=38&font-size=0.5" alt="Profile" style="width: 38px; height: 38px; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                {% endif %}
+            </a>
+        </div>
+        {% endif %}
 
         <!-- The actual menu links are inside this div -->
-        <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="collapse navbar-collapse order-lg-2" id="navbarNav">
             <!-- Links on the LEFT side of the menu -->
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
@@ -33,13 +47,10 @@ need to change this one single file!
             <ul class="navbar-nav ms-auto">
                 <!-- Check if the user is already logged in -->
                 {% if user.is_authenticated %}
-                <li class="nav-item">
+                <li class="nav-item me-lg-3">
                     <a class="nav-link text-white" href="{% url 'chatbot' %}">AI Assistant</a>
                 </li>
-                <li class="nav-item">
-                    <!-- Display personal welcome message -->
-                    <span class="nav-link text-white">Hello, {{ user.username }} ({{ user.role }})</span>
-                </li>
+
                 <li class="nav-item">
                     <!-- Logout button -->
                     <a class="nav-link text-white" href="{% url 'logout' %}">Logout</a>

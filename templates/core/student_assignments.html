@@ -14,7 +14,11 @@
             <div class="card h-100 shadow text-dark" style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.1);">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">{{ assignment.subject }}</h5>
-                    <span class="badge bg-warning text-dark">Due: {{ assignment.due_date }}</span>
+                    {% if assignment.is_closed %}
+                        <span class="badge bg-danger text-white">Closed</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Due: {{ assignment.due_date }}</span>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">{{ assignment.title }}</h5>
@@ -28,8 +32,9 @@
                 </div>
                 <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
                     <small class="text-muted">Posted: {{ assignment.created_at|date:"M d, Y" }}</small>
-                    <a href="{% url 'submit_assignment' assignment.id %}" class="btn btn-primary btn-sm">Submit /
-                        View</a>
+                    <a href="{% url 'submit_assignment' assignment.id %}" class="btn {% if assignment.is_closed %}btn-secondary{% else %}btn-primary{% endif %} btn-sm">
+                        {% if assignment.is_closed %}View{% else %}Submit / View{% endif %}
+                    </a>
                 </div>
             </div>
         </div>

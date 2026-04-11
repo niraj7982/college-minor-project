@@ -4,10 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
+from django.http import HttpResponse
 import random
+import csv
+import io
+from datetime import date
 
-from .forms import LoginForm, SignupForm, ComplaintForm, FeedbackForm, LostFoundForm, ForgotPasswordForm, VerifyOTPForm, NewPasswordForm, ChatbotTrainingForm, AssignmentForm, SubmissionForm, ResourceForm, QuizForm, QuestionForm, BusForm
-from .models import User, Student, Teacher, Driver, Bus, Attendance, Marks, Notice, Complaint, Feedback, Fee, LostFoundItem, PasswordResetOTP, ChatbotTrainingData, Assignment, Submission, Resource, Quiz, Question, QuizResult
+from .forms import LoginForm, SignupForm, ComplaintForm, FeedbackForm, LostFoundForm, ForgotPasswordForm, VerifyOTPForm, NewPasswordForm, ChatbotTrainingForm, AssignmentForm, SubmissionForm, ResourceForm, QuizForm, QuestionForm, BusForm, FeeForm
+from .models import User, Student, Teacher, Driver, Bus, Attendance, Marks, Notice, Complaint, Feedback, Fee, LostFoundItem, PasswordResetOTP, ChatbotTrainingData, Assignment, Submission, Resource, Quiz, Question, QuizResult, AttendanceUpload
 
 def index(request):
     return render(request, 'core/index.html')
@@ -134,6 +138,13 @@ def admin_dashboard(request):
     return render(request, 'core/admin_dashboard.html')
 
 @login_required
+def attendance_method_select(request):
+    """Show the two-option attendance method chooser page."""
+    if not request.user.is_teacher():
+        return redirect('login')
+    return render(request, 'core/take_attendance_select.html')
+
+@login_required
 def take_attendance(request):
     if not request.user.is_teacher():
         return redirect('login')
@@ -152,7 +163,7 @@ def take_attendance(request):
         }
         return render(request, 'core/mark_attendance.html', context)
     
-    return render(request, 'core/take_attendance_select.html')
+    return render(request, 'core/manual_attendance_form.html')
 
 @login_required
 def save_attendance(request):
@@ -243,27 +254,59 @@ def add_marks(request):
         return redirect('login')
     
     if request.method == 'POST':
-        roll_no = request.POST.get('roll_no')
+        course = request.POST.get('course')
         subject = request.POST.get('subject')
-        marks_obtained = request.POST.get('marks_obtained')
         total_marks = request.POST.get('total_marks')
         exam_type = request.POST.get('exam_type')
         
-        try:
-            student = Student.objects.get(roll_no=roll_no)
-            Marks.objects.create(
-                student=student,
-                subject=subject,
-                marks_obtained=marks_obtained,
-                total_marks=total_marks,
-                exam_type=exam_type
-            )
-            return redirect('teacher_dashboard')
-        except Student.DoesNotExist:
-            print(f"Failed to add marks. Student {roll_no} not found.")
-            return render(request, 'core/add_marks.html', {'error': f'Student with Roll No {roll_no} not found.'})
-            
+        students = Student.objects.filter(course__iexact=course)
+        
+        context = {
+            'students': students,
+            'course': course,
+            'subject': subject,
+            'total_marks': total_marks,
+            'exam_type': exam_type,
+        }
+        return render(request, 'core/add_marks_grid.html', context)
+        
     return render(request, 'core/add_marks.html')
+
+@login_required
+def save_marks(request):
+    if not request.user.is_teacher():
+        return redirect('login')
+        
+    if request.method == 'POST':
+        course = request.POST.get('course')
+        subject = request.POST.get('subject')
+        total_marks = request.POST.get('total_marks')
+        exam_type = request.POST.get('exam_type')
+        all_student_ids = request.POST.getlist('all_student_ids')
+        
+        for s_id in all_student_ids:
+            marks_val = request.POST.get(f'marks_{s_id}')
+            if marks_val and marks_val.strip() != '':
+                try:
+                    student = Student.objects.get(user__id=s_id)
+                    # Create or update the marks entry
+                    Marks.objects.update_or_create(
+                        student=student,
+                        subject=subject,
+                        exam_type=exam_type,
+                        defaults={
+                            'marks_obtained': int(marks_val),
+                            'total_marks': int(total_marks)
+                        }
+                    )
+                except Student.DoesNotExist:
+                    continue
+        
+        from django.contrib import messages
+        messages.success(request, f'Marks successfully saved for Course: {course}, Subject: {subject}.')
+        return redirect('teacher_dashboard')
+        
+    return redirect('add_marks')
 
 @login_required
 def view_marks(request):
@@ -299,6 +342,7 @@ def create_notice(request):
         title = request.POST.get('title')
         content = request.POST.get('content')
         category = request.POST.get('category', 'General')
+        notice_file = request.FILES.get('file')
         
         if not title or not content:
              return render(request, 'core/create_notice.html', {'error': 'Title and Content are required.'})
@@ -307,6 +351,7 @@ def create_notice(request):
             title=title,
             content=content,
             category=category,
+            file=notice_file,
             posted_by=request.user
         )
         if request.user.is_teacher():
@@ -442,32 +487,48 @@ def view_notices(request):
 
 @login_required
 def chatbot(request):
-    response_text = ""
-    if request.method == 'POST':
-        query = request.POST.get('query', '').lower()
-        
-        # Simple Rule-based Logic with Dynamic Data
+    import google.generativeai as genai
+    from django.conf import settings as django_settings
+    from django.db.models import Q
 
-        # 0. Check Training Data (Custom Knowledge Base)
-        from django.db.models import Q
+    # --- Session-based chat history ---
+    if 'chat_history' not in request.session:
+        request.session['chat_history'] = []
+
+    chat_history = request.session['chat_history']
+    response_text = ""
+    user_query = ""
+
+    if request.method == 'POST':
+        # Handle clear history
+        if request.POST.get('clear_history'):
+            request.session['chat_history'] = []
+            return redirect('chatbot')
+
+        user_query = request.POST.get('query', '').strip()
+        if not user_query:
+            return render(request, 'core/chatbot.html', {'chat_history': chat_history})
+
+        query_lower = user_query.lower()
+
+        # --- Priority 1: Custom Knowledge Base (DB) ---
         custom_knowledge = ChatbotTrainingData.objects.filter(
-            Q(question__icontains=query) | Q(keywords__icontains=query)
+            Q(question__icontains=query_lower) | Q(keywords__icontains=query_lower)
         ).first()
 
         if custom_knowledge:
-             response_text = custom_knowledge.answer
-        
-        # 1. Teachers
-        elif 'teacher' in query or 'faculty' in query:
+            response_text = custom_knowledge.answer
+
+        # --- Priority 2: Campus-specific live data rules ---
+        elif 'teacher' in query_lower or 'faculty' in query_lower:
             teachers = Teacher.objects.all()
             if teachers:
                 t_list = ", ".join([f"{t.user.username} ({t.department})" for t in teachers])
                 response_text = f"Here are our teachers: {t_list}."
             else:
                 response_text = "No teachers found in the directory."
-                
-        # 2. Fees (Student Only)
-        elif 'fee' in query or 'due' in query:
+
+        elif 'fee' in query_lower or 'due' in query_lower:
             if request.user.is_student():
                 pending_fees = Fee.objects.filter(student=request.user.student, status='Pending')
                 if pending_fees.exists():
@@ -478,28 +539,63 @@ def chatbot(request):
             else:
                 response_text = "Fee information is only available for students."
 
-        # 3. Academic / Syllabus
-        elif 'syllabus' in query or 'course' in query:
-             if request.user.is_student():
-                 response_text = f"You are enrolled in {request.user.student.course}. Please visit the department office for the detailed syllabus."
-             else:
-                 response_text = "Syllabus information varies by course."
+        elif 'syllabus' in query_lower or 'course' in query_lower:
+            if request.user.is_student():
+                response_text = f"You are enrolled in {request.user.student.course}. Please visit the department office for the detailed syllabus."
+            else:
+                response_text = "Syllabus information varies by course."
 
-        # Existing Rules
-        elif 'attendance' in query:
+        elif 'attendance' in query_lower:
             response_text = "You can view your attendance in the Student Dashboard. Teachers can mark attendance from their dashboard."
-        elif 'marks' in query or 'result' in query:
+
+        elif 'marks' in query_lower or 'result' in query_lower:
             response_text = "Marks can be viewed in the 'Marks' section of your dashboard once uploaded by your teacher."
-        elif 'exam' in query:
+
+        elif 'exam' in query_lower:
             response_text = "For exam schedules, please check the 'Notices' section or contact the administration."
-        elif 'contact' in query or 'help' in query:
-            response_text = "You can contact the admin at admin@college.edu."
-        elif 'hello' in query or 'hi' in query:
-            response_text = "Hello! I am your campus assistant. How can I help you today?"
+
+        # --- Priority 3: Gemini AI fallback ---
         else:
-            response_text = "I'm sorry, I didn't understand that. Try asking about teachers, fees, attendance, or marks."
-            
-    return render(request, 'core/chatbot.html', {'response': response_text})
+            api_key = django_settings.GEMINI_API_KEY
+            if api_key:
+                try:
+                    genai.configure(api_key=api_key)
+                    model = genai.GenerativeModel(
+                        model_name='gemini-2.0-flash',
+                        system_instruction=(
+                            "You are a helpful Campus Assistant for a Digital Campus platform used by "
+                            "students, teachers, and administrators. "
+                            "Your role is to answer academic, campus-related, and general educational questions clearly and helpfully. "
+                            "Keep responses concise and friendly. "
+                            "If asked something unrelated to academics or campus life, gently steer the conversation back."
+                        )
+                    )
+                    # Build history for multi-turn context
+                    gemini_history = []
+                    for msg in chat_history[-10:]:   # last 10 turns for context
+                        gemini_history.append({'role': 'user', 'parts': [msg['user']]})
+                        gemini_history.append({'role': 'model', 'parts': [msg['bot']]})
+
+                    chat_session = model.start_chat(history=gemini_history)
+                    gemini_response = chat_session.send_message(user_query)
+                    response_text = gemini_response.text
+                except Exception as e:
+                    response_text = f"Sorry, I couldn't reach the AI service right now. Please try again shortly. (Error: {e})"
+            else:
+                response_text = (
+                    "I'm not sure about that. Try asking about teachers, fees, attendance, marks, or exams. "
+                    "(Gemini AI key not configured.)"
+                )
+
+        # --- Save to session history ---
+        chat_history.append({'user': user_query, 'bot': response_text})
+        request.session['chat_history'] = chat_history
+        request.session.modified = True
+
+    return render(request, 'core/chatbot.html', {
+        'chat_history': chat_history,
+        'last_query': user_query,
+    })
 
 def forgot_password(request):
     if request.method == 'POST':
@@ -642,6 +738,24 @@ def create_assignment(request):
     return render(request, 'core/create_assignment.html', {'form': form})
 
 @login_required
+def edit_assignment(request, assignment_id):
+    if not request.user.is_teacher():
+        return redirect('home')
+        
+    assignment = get_object_or_404(Assignment, id=assignment_id, teacher=request.user.teacher)
+    
+    if request.method == 'POST':
+        form = AssignmentForm(request.POST, request.FILES, instance=assignment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Assignment updated successfully!')
+            return redirect('teacher_assignments')
+    else:
+        form = AssignmentForm(instance=assignment)
+        
+    return render(request, 'core/edit_assignment.html', {'form': form, 'assignment': assignment})
+
+@login_required
 def teacher_assignments(request):
     if not request.user.is_teacher():
         return redirect('home')
@@ -681,6 +795,11 @@ def submit_assignment(request, assignment_id):
     existing_submission = Submission.objects.filter(assignment=assignment, student=request.user.student).first()
     
     if request.method == 'POST':
+        from datetime import date
+        if date.today() > assignment.due_date and not assignment.accept_late_submissions:
+            messages.error(request, 'The due date for this assignment has passed. Late submissions are not accepted.')
+            return redirect('student_assignments')
+
         form = SubmissionForm(request.POST, request.FILES)
         if form.is_valid():
             submission = form.save(commit=False)
@@ -692,7 +811,8 @@ def submit_assignment(request, assignment_id):
                 existing_submission.content = submission.content
                 if submission.file:
                     existing_submission.file = submission.file
-                existing_submission.submitted_at = submission.submitted_at # Update time
+                from django.utils import timezone
+                existing_submission.submitted_at = timezone.now() # Update time correctly
                 existing_submission.save()
                 messages.success(request, 'Assignment submission updated.')
             else:
@@ -703,7 +823,10 @@ def submit_assignment(request, assignment_id):
     else:
         form = SubmissionForm(instance=existing_submission) if existing_submission else SubmissionForm()
         
-    return render(request, 'core/submit_assignment.html', {'form': form, 'assignment': assignment})
+    from datetime import date
+    is_closed = (date.today() > assignment.due_date and not assignment.accept_late_submissions)
+        
+    return render(request, 'core/submit_assignment.html', {'form': form, 'assignment': assignment, 'is_closed': is_closed, 'existing_submission': existing_submission})
 
 # --- Resource Hub Views ---
 
@@ -722,22 +845,26 @@ def resource_list(request):
             dept = None
             
     # Filter resources
-    if dept:
-        # Show resources for this department (case-insensitive)
-        resources = Resource.objects.filter(is_approved=True, department__iexact=dept).order_by('-date_uploaded')
-    elif request.user.is_admin():
+    from django.db.models import Q
+    if request.user.is_admin():
         # Admin sees all
         resources = Resource.objects.filter(is_approved=True).order_by('-date_uploaded')
     else:
-        # Fallback
-        resources = Resource.objects.none()
+        # Show resources for this department, General, empty, or uploaded by user
+        dept_q = Q(department__iexact='General') | Q(department__iexact='')
+        if dept:
+            dept_q |= Q(department__iexact=dept)
+            
+        resources = Resource.objects.filter(
+            Q(is_approved=True) & (dept_q | Q(uploaded_by=request.user))
+        ).distinct().order_by('-date_uploaded')
     
     pending_resources = None
     if request.user.is_teacher():
-        if dept:
-            pending_resources = Resource.objects.filter(is_approved=False, department__iexact=dept).order_by('-date_uploaded')
-        else:
-            pending_resources = Resource.objects.none()
+        # Teachers see all pending resources, so that mistyped departments aren't stuck hidden forever.
+        pending_resources = Resource.objects.filter(
+            is_approved=False
+        ).order_by('-date_uploaded')
         
     return render(request, 'core/resource_list.html', {
         'resources': resources,
@@ -835,6 +962,20 @@ def create_quiz(request):
     else:
         form = QuizForm()
     return render(request, 'core/create_quiz.html', {'form': form})
+
+@login_required
+def user_profile(request):
+    from .forms import UserProfileForm
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            from django.contrib import messages
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('user_profile')
+    else:
+        form = UserProfileForm(instance=request.user)
+    return render(request, 'core/profile.html', {'form': form})
 
 # --- Live Bus Tracking ---
 
@@ -1006,3 +1147,276 @@ def take_quiz(request, quiz_id):
         return render(request, 'core/quiz_result.html', {'result': result, 'quiz': quiz})
         
     return render(request, 'core/take_quiz.html', {'quiz': quiz, 'questions': questions})
+
+
+# ============================================================
+# --- Attendance File Upload Views ---
+# ============================================================
+
+ALLOWED_ATTENDANCE_EXTENSIONS = {'xlsx', 'csv'}
+
+def _get_file_extension(filename):
+    return filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+
+@login_required
+def upload_attendance(request):
+    """Allow teacher to upload an Excel or CSV file to bulk-import attendance."""
+    if not request.user.is_teacher():
+        return redirect('home')
+
+    if request.method == 'POST':
+        subject = request.POST.get('subject', '').strip()
+        course = request.POST.get('course', '').strip()
+        attendance_date_str = request.POST.get('attendance_date', '').strip()
+        uploaded_file = request.FILES.get('attendance_file')
+
+        # --- Validation ---
+        if not subject or not course or not attendance_date_str or not uploaded_file:
+            messages.error(request, 'All fields are required — Subject, Course, Date, and File.')
+            return render(request, 'core/upload_attendance.html')
+
+        ext = _get_file_extension(uploaded_file.name)
+        if ext not in ALLOWED_ATTENDANCE_EXTENSIONS:
+            messages.error(request, 'Only .xlsx (Excel) and .csv files are supported.')
+            return render(request, 'core/upload_attendance.html')
+
+        try:
+            from datetime import datetime
+            attendance_date = datetime.strptime(attendance_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, 'Invalid date format.')
+            return render(request, 'core/upload_attendance.html')
+
+        # --- Parse Rows ---
+        rows = []   # list of (roll_no, status)
+        parse_error = None
+
+        if ext == 'xlsx':
+            try:
+                import openpyxl
+                wb = openpyxl.load_workbook(uploaded_file, read_only=True, data_only=True)
+                ws = wb.active
+                headers = [str(cell.value).strip().lower() if cell.value else '' for cell in next(ws.iter_rows(min_row=1, max_row=1))]
+                if 'roll_no' not in headers or 'status' not in headers:
+                    parse_error = 'Excel file must have columns: roll_no, status'
+                else:
+                    roll_idx = headers.index('roll_no')
+                    status_idx = headers.index('status')
+                    for row in ws.iter_rows(min_row=2, values_only=True):
+                        roll = str(row[roll_idx]).strip() if row[roll_idx] is not None else ''
+                        status_val = str(row[status_idx]).strip().capitalize() if row[status_idx] is not None else ''
+                        if roll:
+                            rows.append((roll, status_val))
+                wb.close()
+            except Exception as e:
+                parse_error = f'Failed to read Excel file: {e}'
+
+        elif ext == 'csv':
+            try:
+                file_data = uploaded_file.read().decode('utf-8-sig')
+                reader = csv.DictReader(io.StringIO(file_data))
+                # Normalise header names
+                fieldnames = [f.strip().lower() for f in (reader.fieldnames or [])]
+                if 'roll_no' not in fieldnames or 'status' not in fieldnames:
+                    parse_error = 'CSV file must have columns: roll_no, status'
+                else:
+                    for raw_row in reader:
+                        norm = {k.strip().lower(): v for k, v in raw_row.items()}
+                        roll = norm.get('roll_no', '').strip()
+                        status_val = norm.get('status', '').strip().capitalize()
+                        if roll:
+                            rows.append((roll, status_val))
+            except Exception as e:
+                parse_error = f'Failed to read CSV file: {e}'
+
+        if parse_error:
+            messages.error(request, parse_error)
+            return render(request, 'core/upload_attendance.html')
+
+        if not rows:
+            messages.error(request, 'The file has no data rows. Please check the file content.')
+            return render(request, 'core/upload_attendance.html')
+
+        # --- Import into DB ---
+        imported = 0
+        skipped = 0
+        error_lines = []
+
+        for roll_no, status_val in rows:
+            if status_val not in ('Present', 'Absent'):
+                skipped += 1
+                error_lines.append(f"Roll {roll_no}: invalid status '{status_val}' (must be Present or Absent)")
+                continue
+            try:
+                student = Student.objects.get(roll_no=roll_no)
+                Attendance.objects.create(
+                    student=student,
+                    subject=subject,
+                    status=status_val,
+                    date=attendance_date,
+                )
+                imported += 1
+            except Student.DoesNotExist:
+                skipped += 1
+                error_lines.append(f"Roll {roll_no}: student not found in system")
+
+        # --- Save upload record ---
+        # Re-open file for saving (it was consumed during parse)
+        uploaded_file.seek(0)
+        upload_record = AttendanceUpload.objects.create(
+            teacher=request.user.teacher,
+            subject=subject,
+            course=course,
+            attendance_date=attendance_date,
+            file=uploaded_file,
+            records_imported=imported,
+            records_skipped=skipped,
+            error_log='\n'.join(error_lines),
+        )
+
+        return redirect('attendance_upload_success', upload_id=upload_record.id)
+
+    return render(request, 'core/upload_attendance.html')
+
+
+@login_required
+def attendance_upload_success(request, upload_id):
+    """Show summary of a completed attendance upload."""
+    if not request.user.is_teacher():
+        return redirect('home')
+    upload = get_object_or_404(AttendanceUpload, id=upload_id, teacher=request.user.teacher)
+    error_lines = [line for line in upload.error_log.splitlines() if line.strip()]
+    return render(request, 'core/attendance_upload_success.html', {
+        'upload': upload,
+        'error_lines': error_lines,
+    })
+
+
+@login_required
+def attendance_upload_history(request):
+    """List all attendance files uploaded by this teacher."""
+    if not request.user.is_teacher():
+        return redirect('home')
+    uploads = AttendanceUpload.objects.filter(teacher=request.user.teacher).order_by('-uploaded_at')
+    return render(request, 'core/attendance_upload_history.html', {'uploads': uploads})
+
+
+@login_required
+def download_attendance_template(request):
+    """Generate and return a sample Excel attendance template for teachers."""
+    if not request.user.is_teacher():
+        return redirect('home')
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'Attendance'
+
+        # Header row styling
+        header_fill = PatternFill('solid', fgColor='4F46E5')
+        header_font = Font(bold=True, color='FFFFFF', size=12)
+
+        headers = ['roll_no', 'status']
+        for col_idx, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center')
+
+        # Column widths
+        ws.column_dimensions['A'].width = 18
+        ws.column_dimensions['B'].width = 18
+
+        # Example rows
+        sample_rows = [
+            ('101', 'Present'),
+            ('102', 'Absent'),
+            ('103', 'Present'),
+        ]
+        for row_idx, (roll, status) in enumerate(sample_rows, start=2):
+            ws.cell(row=row_idx, column=1, value=roll)
+            ws.cell(row=row_idx, column=2, value=status)
+
+        # Add instructions on sheet 2
+        ws2 = wb.create_sheet('Instructions')
+        ws2['A1'] = 'HOW TO FILL ATTENDANCE TEMPLATE'
+        ws2['A1'].font = Font(bold=True, size=14)
+        instructions = [
+            '',
+            'COLUMNS:',
+            '  roll_no  — The student roll number (must match exactly as registered in system)',
+            '  status   — Must be exactly: Present  OR  Absent  (case-insensitive)',
+            '',
+            'RULES:',
+            '  • Do not rename or delete the header row',
+            '  • One student per row',
+            '  • Rows with unknown roll numbers will be skipped and logged',
+            '  • Delete example rows (101, 102, 103) before uploading',
+        ]
+        for i, line in enumerate(instructions, start=2):
+            ws2.cell(row=i, column=1, value=line)
+        ws2.column_dimensions['A'].width = 70
+
+        # Return as HTTP response
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="attendance_template.xlsx"'
+        return response
+
+    except ImportError:
+        messages.error(request, 'openpyxl is not installed. Please contact the administrator.')
+        return redirect('upload_attendance')
+
+# --- Admin Fees Module ---
+
+@login_required
+def admin_fee_list(request):
+    if not request.user.is_admin():
+        return redirect('home')
+    fees = Fee.objects.all().order_by('-due_date')
+    return render(request, 'core/admin_fee_list.html', {'fees': fees})
+
+@login_required
+def admin_add_fee(request):
+    if not request.user.is_admin():
+        return redirect('home')
+        
+    if request.method == 'POST':
+        form = FeeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Fee added successfully!')
+            return redirect('admin_fee_list')
+    else:
+        form = FeeForm()
+        
+    return render(request, 'core/admin_add_fee.html', {'form': form})
+
+@login_required
+def pay_fee(request, fee_id):
+    if not request.user.is_student():
+        return redirect('home')
+        
+    fee = get_object_or_404(Fee, id=fee_id, student=request.user.student)
+    
+    if fee.status == 'Paid':
+        messages.info(request, 'This fee is already paid.')
+        return redirect('fee_status')
+        
+    if request.method == 'POST':
+        # Simulate payment processing
+        fee.status = 'Paid'
+        fee.save()
+        messages.success(request, 'Payment successful! Fee marked as Paid.')
+        return redirect('fee_status')
+        
+    return render(request, 'core/pay_fee.html', {'fee': fee})
+
+

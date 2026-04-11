@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body { font-family: 'Inter', sans-serif; }
+
+  .profile-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1rem 4rem;
+    min-height: calc(100vh - 80px);
+  }
+
+  .profile-container {
+    width: 100%;
+    max-width: 550px;
+  }
+
+  /* ── Header ── */
+  .profile-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .avatar-box {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2));
+    padding: 5px;
+    margin: 0 auto 1.5rem;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.1);
+  }
+
+  .profile-header h2 {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+  }
+  .profile-header p {
+    color: rgba(165,180,252,0.8);
+    font-size: 0.95rem;
+    margin: 0;
+    text-transform: capitalize;
+  }
+
+  /* ── Card ── */
+  .glass-card {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 24px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+    padding: 2.5rem;
+  }
+
+  /* Labels & Inputs */
+  .field-label {
+    display: block;
+    color: #c7d2fe;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .glass-card .form-control {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+    border-radius: 12px !important;
+    color: #e2e8f0 !important;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.25s;
+  }
+  
+  .glass-card .form-control:focus {
+    background: rgba(30, 41, 59, 0.9) !important;
+    border-color: rgba(99,102,241,0.7) !important;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
+  }
+
+  .glass-card input[type="file"].form-control {
+    padding: 0.6rem 0.9rem;
+  }
+  
+  .glass-card input[type="file"]::-webkit-file-upload-button {
+    background: linear-gradient(135deg, rgba(99,102,241,0.6), rgba(139,92,246,0.5));
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-right: 0.75rem;
+  }
+
+  /* Actions */
+  .btn-submit {
+    width: 100%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+  }
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(99,102,241,0.5);
+  }
+</style>
+
+<div class="profile-wrapper">
+  <div class="profile-container">
+
+    <div class="profile-header">
+      <div class="avatar-box">
+        {% if user.profile_pic %}
+          <img src="{{ user.profile_pic.url }}" alt="Profile" class="avatar-image" id="profilePreview">
+        {% else %}
+          <img src="https://ui-avatars.com/api/?name={{ user.display_name }}&background=6366f1&color=fff&size=200&font-size=0.4" alt="Profile" class="avatar-image" id="profilePreview">
+        {% endif %}
+      </div>
+      <h2>{{ user.display_name }}</h2>
+      <p>{{ user.role }} Account</p>
+    </div>
+
+    <div class="glass-card">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+          <label class="field-label">Email Address</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.email.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+        
+        <div class="mb-2">
+          <label class="field-label">Update Profile Picture</label>
+          {{ form.profile_pic }}
+          <small style="color:rgba(148,163,184,0.6); display:block; margin-top:0.4rem;">Square images work best. Max size 5MB.</small>
+          {% if form.profile_pic.errors %}
+            <div class="text-danger mt-1" style="font-size:0.8rem;">{{ form.profile_pic.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn-submit">Save Changes</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Simple preview image updater when selecting file
+  document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+      if (e.target.files && e.target.files[0]) {
+          var reader = new FileReader();
+          reader.onload = function (e) {
+              document.getElementById('profilePreview').src = e.target.result;
+          }
+          reader.readAsDataURL(e.target.files[0]);
+      }
+  });
+</script>
+{% endblock %}

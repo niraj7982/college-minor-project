@@ -44,6 +44,7 @@
                     <td>
                         <a href="{% url 'view_submissions' assignment.id %}" class="btn btn-sm btn-success">View
                             Submissions</a>
+                        <a href="{% url 'edit_assignment' assignment.id %}" class="btn btn-sm btn-warning ms-1">Edit</a>
                     </td>
                 </tr>
                 {% endfor %}

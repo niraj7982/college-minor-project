@@ -1,37 +1,390 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow"
-            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
-            <div class="card-header border-bottom border-light text-white" style="background: rgba(0, 0, 0, 0.2);">
-                <h4>Create Notice</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="text-white">Title</label>
-                        <input type="text" name="title" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="text-white">Category</label>
-                        <select name="category" class="form-select">
-                            <option value="General">General</option>
-                            <option value="Academic">Academic</option>
-                            <option value="Event">Event</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="text-white">Content</label>
-                        <textarea name="content" class="form-control" rows="5" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Post Notice</button>
-                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">Back</a>
-                </form>
-            </div>
-        </div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .page-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem 3rem;
+    min-height: calc(100vh - 80px);
+  }
+
+  .form-container {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  /* ── Page Title ── */
+  .page-title {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .page-title .title-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 0.9rem;
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4);
+  }
+
+  .page-title h2 {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.02em;
+  }
+
+  .page-title p {
+    color: rgba(224, 242, 254, 0.75);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  /* ── Card ── */
+  .glass-card {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(14, 165, 233, 0.25);
+    border-radius: 24px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+  }
+
+  .card-header-area {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(59, 130, 246, 0.15));
+    border-bottom: 1px solid rgba(14, 165, 233, 0.25);
+    padding: 1.3rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .card-header-area .header-icon {
+    font-size: 1.3rem;
+  }
+
+  .card-header-area h4 {
+    margin: 0;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+  }
+
+  .card-header-area small {
+    color: rgba(224, 242, 254, 0.7);
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 1px;
+  }
+
+  /* ── Form Body ── */
+  .card-form-body {
+    padding: 2rem;
+  }
+
+  /* Labels */
+  .field-label {
+    display: block;
+    color: #e0f2fe;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.45rem;
+  }
+
+  .field-label span {
+    color: #f87171;
+    margin-left: 2px;
+  }
+
+  /* ── Custom Inputs — All dark-themed ── */
+  .field-input,
+  .field-textarea,
+  .field-select,
+  .field-file {
+    width: 100%;
+    background: rgba(30, 41, 59, 0.8) !important;
+    border: 1px solid rgba(14, 165, 233, 0.3) !important;
+    border-radius: 12px !important;
+    color: #e2e8f0 !important;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
+    -webkit-appearance: none;
+  }
+
+  .field-textarea {
+    resize: vertical;
+    min-height: 110px;
+    line-height: 1.6;
+  }
+
+  .field-input::placeholder,
+  .field-textarea::placeholder {
+    color: rgba(148, 163, 184, 0.4);
+  }
+
+  .field-input:focus,
+  .field-textarea:focus,
+  .field-select:focus {
+    border-color: rgba(14, 165, 233, 0.65) !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14) !important;
+    background: rgba(30, 41, 59, 0.95) !important;
+  }
+
+  /* Select dark arrow */
+  .field-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e0f2fe' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 1rem center !important;
+    padding-right: 2.5rem;
+    cursor: pointer;
+  }
+
+  .field-select option {
+    background: #1e293b;
+    color: #e2e8f0;
+  }
+
+  /* File input */
+  .field-file {
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+  }
+
+  .field-file::-webkit-file-upload-button {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.6), rgba(59, 130, 246, 0.5));
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.82rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    margin-right: 0.75rem;
+    transition: all 0.2s;
+  }
+
+  .field-file::-webkit-file-upload-button:hover {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(59, 130, 246, 0.7));
+  }
+
+  /* Section dividers */
+  .form-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(224, 242, 254, 0.55);
+    margin-bottom: 1rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .form-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(14, 165, 233, 0.15);
+  }
+
+  /* Validation error */
+  .field-error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    color: #fca5a5;
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Help text */
+  .field-hint {
+    color: rgba(148, 163, 184, 0.55);
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+  }
+
+  /* ── Action buttons ── */
+  .form-actions {
+    display: flex;
+    gap: 0.85rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-submit {
+    flex: 1;
+    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+    color: #fff;
+    border: none;
+    border-radius: 13px;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.22s;
+    box-shadow: 0 5px 18px rgba(14, 165, 233, 0.38);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-width: 180px;
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(14, 165, 233, 0.5);
+  }
+
+  .btn-submit:active {
+    transform: translateY(0);
+  }
+
+  .btn-cancel {
+    background: rgba(148, 163, 184, 0.08);
+    color: rgba(148, 163, 184, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 13px;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .btn-cancel:hover {
+    color: #e2e8f0;
+    border-color: rgba(148, 163, 184, 0.4);
+    background: rgba(148, 163, 184, 0.12);
+  }
+</style>
+
+<div class="page-wrapper">
+  <div class="form-container">
+
+    <!-- Page Title -->
+    <div class="page-title">
+      <div class="title-icon">📢</div>
+      <h2>Create New Notice</h2>
+      <p>Broadcast information or important updates across the campus</p>
     </div>
+
+    <!-- Error Block -->
+    {% if error %}
+    <div class="field-error">
+      <span>⚠️</span> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Form Card -->
+    <div class="glass-card">
+
+      <!-- Card Header -->
+      <div class="card-header-area">
+        <span class="header-icon">📌</span>
+        <div>
+          <h4>Notice Details</h4>
+          <small>All fields marked * are required</small>
+        </div>
+      </div>
+
+      <!-- Form Body -->
+      <div class="card-form-body">
+        <form method="post" enctype="multipart/form-data" id="noticeForm">
+          {% csrf_token %}
+
+          <!-- Main Info Section -->
+          <div class="form-section-label">Notice Information</div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-8">
+              <label class="field-label" for="title">Title <span>*</span></label>
+              <input type="text" name="title" id="title" class="field-input" placeholder="Enter notice title" required>
+            </div>
+            <div class="col-md-4">
+              <label class="field-label" for="category">Category <span>*</span></label>
+              <select name="category" id="category" class="field-select" required style="appearance: none;">
+                <option value="General">General</option>
+                <option value="Academic">Academic</option>
+                <option value="Event">Event</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="field-label" for="content">Content <span>*</span></label>
+            <textarea name="content" id="content" class="field-textarea" placeholder="Type out your announcement..."
+              required></textarea>
+          </div>
+
+          <!-- Documentation / File Upload -->
+          <div class="form-section-label" style="margin-top:1.5rem;">Documentation (Optional)</div>
+
+          <div class="mb-3">
+            <label class="field-label" for="file">Attachment File</label>
+            <input type="file" name="file" id="file" class="field-file">
+            <div class="field-hint">Upload a PDF, image, or document with more details.</div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="submit" class="btn-submit" id="submitBtn">
+              <span>🚀</span> Post Notice
+            </button>
+            <a href="{% if request.user.is_teacher %}{% url 'teacher_dashboard' %}{% else %}{% url 'admin_dashboard' %}{% endif %}"
+              class="btn-cancel">
+              ← Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
 </div>
+
+<script>
+  // Submit loading state
+  document.getElementById('noticeForm').addEventListener('submit', function () {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin 0.6s linear infinite"></span> Posting...';
+  });
+</script>
+<style>
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
 {% endblock %}

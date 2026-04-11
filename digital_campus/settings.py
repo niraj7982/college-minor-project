@@ -155,8 +155,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise for serving static files in production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise for serving static files in production (not local dev)
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -169,3 +170,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Email Backend for Development (Console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# --- Gemini AI Chatbot ---
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')

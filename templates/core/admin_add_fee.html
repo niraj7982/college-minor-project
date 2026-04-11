@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="mb-4">Add New Fee</h2>
+        <div class="card shadow-sm"
+            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label text-light">Select Student</label>
+                            {{ form.student }}
+                            {% if form.student.errors %}
+                            <div class="text-danger small">{{ form.student.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-light">Semester</label>
+                            {{ form.semester }}
+                            {% if form.semester.errors %}
+                            <div class="text-danger small">{{ form.semester.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-light">Amount (Rs.)</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}
+                            <div class="text-danger small">{{ form.amount.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-light">Due Date</label>
+                            {{ form.due_date }}
+                            {% if form.due_date.errors %}
+                            <div class="text-danger small">{{ form.due_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-light">Status</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                            <div class="text-danger small">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Fee</button>
+                        <a href="{% url 'admin_fee_list' %}" class="btn btn-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

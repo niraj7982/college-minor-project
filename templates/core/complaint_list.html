@@ -3,8 +3,8 @@
 {% block content %}
 <div class="row">
     <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-header bg-danger text-white">
+        <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div class="card-header bg-danger text-white border-bottom border-light">
                 <h4>Lodge Complaint</h4>
             </div>
             <div class="card-body">
@@ -12,7 +12,7 @@
                     {% csrf_token %}
                     {% for field in form %}
                     <div class="mb-3">
-                        <label class="form-label">{{ field.label }}</label>
+                        <label class="form-label text-light">{{ field.label }}</label>
                         {{ field }}
                     </div>
                     {% endfor %}
@@ -23,9 +23,9 @@
     </div>
 
     <div class="col-md-8">
-        <h3>My Complaints</h3>
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
+        <h3 class="mb-3">My Complaints</h3>
+        <div class="table-responsive shadow-sm" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 10px;">
+            <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
                 <thead class="table-dark">
                     <tr>
                         <th>Date</th>
@@ -39,11 +39,10 @@
                         <td>{{ complaint.date_posted|date:"M d, Y" }}</td>
                         <td>
                             <strong>{{ complaint.title }}</strong><br>
-                            <small class="text-muted">{{ complaint.description }}</small>
+                            <small class="text-light">{{ complaint.description }}</small>
                             {% if complaint.admin_comment %}
-                            <div class="mt-2 p-2 bg-secondary border rounded">
-                                <small class="text-success"><strong>Admin Solution:</strong> {{ complaint.admin_comment
-                                    }}</small>
+                            <div class="mt-2 p-2 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);">
+                                <small class="text-success"><strong>Admin Solution:</strong> {{ complaint.admin_comment }}</small>
                             </div>
                             {% endif %}
                         </td>

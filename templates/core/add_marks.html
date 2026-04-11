@@ -15,20 +15,16 @@
                 <form method="post">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label class="text-white">Student Roll No</label>
-                        <input type="text" name="roll_no" class="form-control" placeholder="e.g. 101" required>
+                        <label class="text-white">Target Course / Class</label>
+                        <input type="text" name="course" class="form-control" placeholder="e.g. B.Tech" required>
                     </div>
                     <div class="mb-3">
                         <label class="text-white">Subject</label>
                         <input type="text" name="subject" class="form-control" placeholder="e.g. Mathematics" required>
                     </div>
                     <div class="mb-3">
-                        <label class="text-white">Marks Obtained</label>
-                        <input type="number" name="marks_obtained" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
                         <label class="text-white">Total Marks</label>
-                        <input type="number" name="total_marks" class="form-control" required>
+                        <input type="number" name="total_marks" class="form-control" placeholder="e.g. 100" required>
                     </div>
                     <div class="mb-3">
                         <label class="text-white">Exam Type</label>
@@ -38,7 +34,7 @@
                             <option value="Assignment">Assignment</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save Marks</button>
+                    <button type="submit" class="btn btn-primary">Process Next Step</button>
                     <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">Back</a>
                 </form>
             </div>

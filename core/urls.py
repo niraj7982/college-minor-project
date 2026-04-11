@@ -4,13 +4,20 @@ from . import views
 urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('profile/', views.user_profile, name='user_profile'),
     path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('attendance/take/', views.take_attendance, name='take_attendance'),
+    path('attendance/select/', views.attendance_method_select, name='attendance_method_select'),
     path('attendance/save/', views.save_attendance, name='save_attendance'),
     path('attendance/view/', views.view_attendance, name='view_attendance'),
+    path('attendance/upload/', views.upload_attendance, name='upload_attendance'),
+    path('attendance/upload/success/<int:upload_id>/', views.attendance_upload_success, name='attendance_upload_success'),
+    path('attendance/upload/history/', views.attendance_upload_history, name='attendance_upload_history'),
+    path('attendance/download-template/', views.download_attendance_template, name='download_attendance_template'),
     path('marks/add/', views.add_marks, name='add_marks'),
+    path('marks/save/', views.save_marks, name='save_marks'),
     path('marks/view/', views.view_marks, name='view_marks'),
     path('notice/create/', views.create_notice, name='create_notice'),
     path('notice/view/', views.view_notices, name='view_notices'),
@@ -34,6 +41,7 @@ urlpatterns = [
     
     # Assignment Module
     path('assignment/create/', views.create_assignment, name='create_assignment'),
+    path('assignment/edit/<int:assignment_id>/', views.edit_assignment, name='edit_assignment'),
     path('assignment/teacher_list/', views.teacher_assignments, name='teacher_assignments'), # Changed name to avoid conflict if any, clearer
     path('assignment/submissions/<int:assignment_id>/', views.view_submissions, name='view_submissions'),
     path('assignment/student_list/', views.student_assignments, name='student_assignments'),
@@ -66,4 +74,11 @@ urlpatterns = [
     path('manage-users/verify/', views.admin_verify_users, name='admin_verify_users'),
     path('manage-users/approve/<int:user_id>/', views.approve_user, name='approve_user'),
     path('manage-users/reject/<int:user_id>/', views.reject_user, name='reject_user'),
+    
+    # Admin Fees
+    path('manage-fees/', views.admin_fee_list, name='admin_fee_list'),
+    path('manage-fees/add/', views.admin_add_fee, name='admin_add_fee'),
+    
+    # Student Fees Payment
+    path('fees/pay/<int:fee_id>/', views.pay_fee, name='pay_fee'),
 ]

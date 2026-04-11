@@ -38,3 +38,4 @@ db.sqlite3-journal
 
 # Vercel/Render collected static files (generated at deploy time)
 staticfiles/
+.vercel

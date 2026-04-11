@@ -1,31 +1,163 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow"
-            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
-            <div class="card-header border-bottom border-light text-white" style="background: rgba(0, 0, 0, 0.2);">
-                <h4>Take Attendance</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="text-white">Course / Class</label>
-                        <input type="text" name="course" class="form-control" placeholder="e.g. B.Tech CS 2nd Year"
-                            required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="text-white">Subject</label>
-                        <input type="text" name="subject" class="form-control" placeholder="e.g. Data Structures"
-                            required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Next</button>
-                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">Back</a>
-                </form>
-            </div>
-        </div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body { font-family: 'Inter', sans-serif; }
+
+  .select-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2.5rem 1rem;
+    min-height: calc(100vh - 80px);
+  }
+  .select-container { width: 100%; max-width: 700px; }
+
+  .page-title {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .page-title h2 { color: #fff; font-weight: 700; font-size: 1.75rem; margin-bottom: 0.3rem; }
+  .page-title p  { color: rgba(165,180,252,0.75); font-size: 0.9rem; }
+
+  .option-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 580px) { .option-grid { grid-template-columns: 1fr; } }
+
+  .option-card {
+    background: rgba(15,23,42,0.82);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+  .option-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(99,102,241,0.55);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.4), 0 0 0 1px rgba(99,102,241,0.2);
+  }
+  .option-card .card-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+  }
+  .card-icon-manual {
+    background: linear-gradient(135deg, rgba(14,165,233,0.3), rgba(6,182,212,0.2));
+    border: 1px solid rgba(14,165,233,0.3);
+  }
+  .card-icon-upload {
+    background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2));
+    border: 1px solid rgba(99,102,241,0.3);
+  }
+  .option-card h5 {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 0;
+  }
+  .option-card p {
+    color: rgba(148,163,184,0.7);
+    font-size: 0.83rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .option-card .card-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .badge-existing {
+    background: rgba(14,165,233,0.15);
+    color: #7dd3fc;
+    border: 1px solid rgba(14,165,233,0.25);
+  }
+  .badge-new {
+    background: rgba(99,102,241,0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(99,102,241,0.25);
+  }
+
+  .history-link {
+    text-align: center;
+  }
+  .history-link a {
+    color: rgba(165,180,252,0.6);
+    font-size: 0.83rem;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .history-link a:hover { color: #a5b4fc; }
+
+  .back-row {
+    text-align: center;
+    margin-top: 1.5rem;
+  }
+  .back-row a {
+    color: rgba(148,163,184,0.5);
+    font-size: 0.83rem;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .back-row a:hover { color: #e2e8f0; }
+</style>
+
+<div class="select-wrapper">
+  <div class="select-container">
+
+    <div class="page-title">
+      <h2>📋 Record Attendance</h2>
+      <p>Choose your preferred method to record today's attendance</p>
     </div>
+
+    <div class="option-grid">
+      <!-- Option 1: Manual -->
+      <a href="{% url 'take_attendance' %}" class="option-card" id="manualCard"
+         onclick="this.style.pointerEvents='none'">
+        <div class="card-icon card-icon-manual">✏️</div>
+        <span class="card-badge badge-existing">Current System</span>
+        <h5>Mark Manually</h5>
+        <p>Select a class &amp; subject, then toggle each student's status one by one</p>
+      </a>
+
+      <!-- Option 2: Upload File -->
+      <a href="{% url 'upload_attendance' %}" class="option-card" id="uploadCard">
+        <div class="card-icon card-icon-upload">📁</div>
+        <span class="card-badge badge-new">✨ New Feature</span>
+        <h5>Upload Excel / CSV</h5>
+        <p>Upload a pre-filled spreadsheet to bulk-import attendance in seconds</p>
+      </a>
+    </div>
+
+    <!-- History link -->
+    <div class="history-link">
+      <a href="{% url 'attendance_upload_history' %}">📜 View past file uploads →</a>
+    </div>
+
+    <div class="back-row">
+      <a href="{% url 'teacher_dashboard' %}">← Back to Dashboard</a>
+    </div>
+
+  </div>
 </div>
 {% endblock %}

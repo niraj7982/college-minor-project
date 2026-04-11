@@ -25,9 +25,11 @@ class SignupForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'role']
+        fields = ['first_name', 'last_name', 'username', 'email', 'password', 'role']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name', 'required': 'true'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name', 'required': 'true'}),
         }
 
     def clean(self):
@@ -132,7 +134,7 @@ class ChatbotTrainingForm(forms.ModelForm):
 class AssignmentForm(forms.ModelForm):
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'course', 'subject', 'due_date', 'file']
+        fields = ['title', 'description', 'course', 'subject', 'due_date', 'file', 'accept_late_submissions']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Assignment Title'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Assignment Description'}),
@@ -140,6 +142,7 @@ class AssignmentForm(forms.ModelForm):
             'subject': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Subject'}),
             'due_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'accept_late_submissions': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 class SubmissionForm(forms.ModelForm):
@@ -206,3 +209,29 @@ class BusForm(forms.ModelForm):
         # Let's show all drivers for now, generic implementation.
         self.fields['driver'].queryset = Driver.objects.all()
         self.fields['driver'].label_from_instance = lambda obj: f"{obj.user.username} (License: {obj.license_number})"
+
+class FeeForm(forms.ModelForm):
+    class Meta:
+        model = Fee
+        fields = ['student', 'semester', 'amount', 'due_date', 'status']
+        widgets = {
+            'student': forms.Select(attrs={'class': 'form-control'}),
+            'semester': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Semester (e.g. 1st, 2nd)'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Amount'}),
+            'due_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super(FeeForm, self).__init__(*args, **kwargs)
+        self.fields['student'].queryset = Student.objects.all()
+        self.fields['student'].label_from_instance = lambda obj: f"{obj.user.username} ({obj.roll_no})"
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['profile_pic', 'email']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'}),
+            'profile_pic': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }

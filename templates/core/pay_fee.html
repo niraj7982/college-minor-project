@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 mt-4">
+        <h2 class="mb-4 text-center">Secure Payment Gateway</h2>
+        <div class="card shadow"
+            style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px;">
+            <div class="card-header border-bottom border-secondary text-center">
+                <h5>Fee Payment: {{ fee.semester }} Semester</h5>
+                <h3 class="text-info mt-2">Rs. {{ fee.amount }}</h3>
+                <small class="text-light">Due by: {{ fee.due_date|date:"F d, Y" }}</small>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" id="paymentForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-light">Cardholder Name</label>
+                        <input type="text" class="form-control" placeholder="Name on Card" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-light">Card Number</label>
+                        <input type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <label class="form-label text-light">Expiry Date</label>
+                            <input type="text" class="form-control" placeholder="MM/YY" maxlength="5" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-light">CVV</label>
+                            <input type="password" class="form-control" placeholder="123" maxlength="3" required>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-success btn-lg shadow-sm" id="payBtn">
+                            <i class="fas fa-lock"></i> Pay Rs. {{ fee.amount }}
+                        </button>
+                        <a href="{% url 'fee_status' %}" class="btn btn-outline-light mt-3">Cancel</a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer border-top border-secondary text-center p-3">
+                <small class="text-light"><i class="fas fa-shield-alt"></i> Payments are 100% secure.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        var btn = document.getElementById('payBtn');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+        btn.classList.add('disabled');
+        // Let form submit natively to complete the POST request.
+    });
+</script>
+{% endblock %}
