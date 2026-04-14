@@ -13,8 +13,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
-# Detect Vercel environment
-IS_VERCEL = os.environ.get('VERCEL', False)
+# Detect Vercel environment (VERCEL env var is set to '1' by Vercel)
+IS_VERCEL = bool(os.environ.get('VERCEL', ''))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -97,7 +97,8 @@ if IS_VERCEL:
     import shutil
     DB_SOURCE = BASE_DIR / 'db.sqlite3'
     DB_DEST = Path('/tmp/db.sqlite3')
-    if DB_SOURCE.exists() and not DB_DEST.exists():
+    # Copy the bundled DB to /tmp on every cold start (Vercel project dir is read-only)
+    if DB_SOURCE.exists():
         shutil.copy2(DB_SOURCE, DB_DEST)
     DATABASES = {
         'default': {
@@ -113,8 +114,12 @@ else:
         }
     }
 
-# Use signed cookies for sessions instead of DB (avoids write errors on Vercel)
+# Sessions: use signed cookies on Vercel (no disk writes needed).
+# Warning: session data is stored in the cookie — keep chat history short.
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+# Raise cookie size limit slightly (default 4096 bytes — increase for chat history)
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = IS_VERCEL  # HTTPS only on Vercel
 
 
 # Password validation
@@ -155,7 +160,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise for serving static files in production (not local dev)
+# WhiteNoise for serving static files in production.
+# Use CompressedStaticFilesStorage (NOT CompressedManifest) to avoid
+# crashes when staticfiles.json is missing on Vercel cold starts.
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
@@ -167,6 +174,9 @@ LOGIN_URL = 'login'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# On Vercel the project dir is read-only; redirect media writes to /tmp
+if IS_VERCEL:
+    MEDIA_ROOT = '/tmp/media'
 
 # Email Backend for Development (Console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

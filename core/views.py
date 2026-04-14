@@ -588,7 +588,10 @@ def chatbot(request):
                 )
 
         # --- Save to session history ---
+        # Keep only last 5 exchanges to stay within signed-cookie size limits on Vercel
         chat_history.append({'user': user_query, 'bot': response_text})
+        if len(chat_history) > 5:
+            chat_history = chat_history[-5:]
         request.session['chat_history'] = chat_history
         request.session.modified = True
 

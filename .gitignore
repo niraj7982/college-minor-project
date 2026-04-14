@@ -21,6 +21,9 @@ Thumbs.db
 # Django stuff:
 *.log
 local_settings.py
+# NOTE: db.sqlite3 is intentionally NOT ignored so Vercel can bundle it.
+# The app copies it to /tmp at runtime since the project dir is read-only on Vercel.
+db.sqlite3-journal
 
 # VS Code / IDEs
 .vscode/
