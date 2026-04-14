@@ -37,6 +37,6 @@ db.sqlite3-journal
 # */migrations/*.py
 # !*/migrations/__init__.py
 
-# Vercel/Render collected static files (generated at deploy time)
-staticfiles/
+# .vercel project config (local only)
+# NOTE: staticfiles/ is intentionally NOT ignored — Vercel needs these to serve CSS/JS via WhiteNoise.
 .vercel

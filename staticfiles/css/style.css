@@ -1,0 +1,461 @@
+/* 
+=========================================================
+  BEGINNER FRIENDLY CSS GUIDE - DIGITAL CAMPUS PROJECT
+=========================================================
+This CSS file is designed to be easy to understand.
+It uses a modern design style called "Glassmorphism" 
+which makes elements look like frosted glass.
+
+We have divided this file into different sections:
+1. Variables (Colors)
+2. Main Body (Background)
+3. Glass Cards
+4. Navigation Bar
+5. Buttons
+6. Tables and Forms
+7. Mobile Responsiveness
+=========================================================
+*/
+
+
+/* 
+---------------------------------------------------------
+  1. CSS VARIABLES (Custom Colors)
+---------------------------------------------------------
+Variables are like named boxes where we store colors.
+Instead of typing the color code #00e5ff every time, 
+we can just type var(--primary-color).
+This makes it very easy to change the website's theme later!
+*/
+:root {
+    /* Main colors used for buttons and highlights */
+    --primary-color: #00e5ff;
+    /* A bright cyan color */
+    --secondary-color: #2979ff;
+    /* A bright blue color */
+    --accent-color: #ff4081;
+    /* A pink color for small details */
+
+    /* Colors for the beautiful background gradient */
+    --bg-gradient-start: #8e2de2;
+    /* Vibrant Purple */
+    --bg-gradient-mid: #4a00e0;
+    /* Deep Blue */
+    --bg-gradient-end: #8e2de2;
+    /* Vibrant Purple again */
+
+    /* Colors for the 'Glass' effect */
+    --glass-bg: rgba(20, 20, 35, 0.6);
+    /* Semi-transparent dark background */
+    --glass-border: rgba(255, 255, 255, 0.25);
+    /* Semi-transparent white border */
+
+    /* Default text color */
+    --text-color: #ffffff;
+    /* White text */
+
+    /* Color when we hover over a card */
+    --card-hover-bg: rgba(45, 45, 79, 0.8);
+}
+
+
+/* 
+---------------------------------------------------------
+  2. GENERAL BODY STYLES
+---------------------------------------------------------
+These styles apply to the entire webpage.
+*/
+body {
+    /* We create a colorful background that mixes 3 colors */
+    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-mid), var(--bg-gradient-end));
+
+    /* Make sure the body is at least as tall as the screen */
+    min-height: 100vh;
+
+    /* Choose a clean, modern font */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    /* Set the default text color to white */
+    color: var(--text-color);
+
+    /* Keep the background fixed in place when we scroll down */
+    background-attachment: fixed;
+}
+
+
+/* 
+---------------------------------------------------------
+  3. GLASSMORPHISM CARDS
+---------------------------------------------------------
+This creates the "frosted glass" look for all ".card" boxes.
+*/
+.card {
+    /* Use the semi-transparent dark color we defined earlier */
+    background: var(--glass-bg);
+
+    /* Add a very thin, semi-transparent white border */
+    border: 1px solid var(--glass-border);
+
+    /* THIS IS THE MAGIC! It blurs everything behind the card */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    /* For Safari browsers */
+
+    /* Round the corners of the card */
+    border-radius: 16px;
+
+    /* Add a soft shadow behind the card to make it pop out */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+
+    /* Set text inside the card to white */
+    color: #fff;
+
+    /* Make animations smooth when hovering */
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s;
+}
+
+/* What happens when the user's mouse points at (hovers) a card */
+.card:hover {
+    /* Move the card slightly up */
+    transform: translateY(-5px);
+
+    /* Make the shadow bigger to look like it's lifting closer to you */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+
+    /* Change the background color slightly */
+    background: var(--card-hover-bg);
+}
+
+/* Style for the top header part of a card */
+.card-header {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-bottom: 1px solid var(--glass-border);
+    font-weight: 600;
+    /* Make text bolder */
+    color: #fff;
+}
+
+/* Ensure text inside card uses the card's text color */
+.card-text {
+    color: inherit;
+}
+
+/* Special styles for cards that need dark text (like on a white background) */
+.card.text-dark,
+.card.text-dark .card-title,
+.card.text-dark .card-text,
+.card.text-dark h5 {
+    color: #212529 !important;
+    /* Dark grey color */
+}
+
+
+/* 
+---------------------------------------------------------
+  4. NAVIGATION BAR (Top Menu)
+---------------------------------------------------------
+*/
+.navbar {
+    /* Dark semi-transparent background */
+    background: rgba(10, 10, 20, 0.8) !important;
+
+    /* Stronger blur effect for the navbar */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    /* Thin line at the bottom of navbar */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* The website logo/name on the left of navbar */
+.navbar-brand {
+    color: var(--primary-color) !important;
+    /* Cyan color */
+    font-weight: 700;
+    /* Very bold */
+    font-size: 1.5rem;
+    /* Larger text */
+    /* Add a glowing text effect */
+    text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+}
+
+/* The links in the navigation bar (Home, About, etc.) */
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    /* Slightly faded white */
+    transition: color 0.3s;
+    /* Smooth color change */
+}
+
+/* When hovering over a nav link */
+.nav-link:hover {
+    color: var(--primary-color) !important;
+    /* Change to Cyan */
+    text-shadow: 0 0 5px rgba(0, 210, 255, 0.5);
+    /* Add glow */
+}
+
+
+/* 
+---------------------------------------------------------
+  5. BUTTONS
+---------------------------------------------------------
+Making our buttons look clickable and modern.
+*/
+
+/* Primary (Main) Button Style */
+.btn-primary {
+    /* Use a gradient (color blend) from Blue to Cyan */
+    background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+    border: none;
+    /* Remove default border */
+    border-radius: 8px;
+    /* Slightly rounded corners */
+    padding: 10px 25px;
+    /* Spacing inside the button */
+    font-weight: 600;
+    /* Bold text */
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+    /* Colored shadow */
+    transition: all 0.3s ease;
+    /* Smooth hover effects */
+}
+
+/* When hovering over primary button */
+.btn-primary:hover {
+    transform: scale(1.05);
+    /* Make it 5% bigger */
+    box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5);
+    /* Bigger shadow */
+    filter: brightness(1.1);
+    /* Make it slightly brighter */
+}
+
+/* Secondary (Alternative) Button Style */
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    /* Very transparent white */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    backdrop-filter: blur(5px);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    /* Less transparent on hover */
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Light Button Style */
+.btn-light {
+    background: rgba(255, 255, 255, 0.9);
+    /* Mostly solid white */
+    border: none;
+    color: #333;
+    /* Dark text */
+    font-weight: 600;
+}
+
+.btn-light:hover {
+    background: #fff;
+    /* Fully solid white on hover */
+    color: #000;
+    /* True black text */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
+
+
+/* 
+---------------------------------------------------------
+  6. TABLES, FORMS, AND MODALS
+---------------------------------------------------------
+Styling data tables and input boxes to match the dark theme.
+*/
+
+/* Table Styles */
+.table {
+    background: rgba(0, 0, 0, 0.3);
+    /* Dark semi-transparent background */
+    border-radius: 12px;
+    overflow: hidden;
+    /* Keeps rows inside rounded corners */
+    color: #e0e0e0;
+    /* Light grey text */
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Table Header (Top row) */
+.table thead th {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    color: var(--primary-color) !important;
+    /* Cyan text */
+    border-bottom: 2px solid var(--secondary-color);
+    /* Blue line under header */
+}
+
+.table td,
+.table th {
+    border-color: rgba(255, 255, 255, 0.1);
+    /* Subtle lines between cells */
+}
+
+/* Alternating row colors for striped tables */
+.table-striped>tbody>tr:nth-of-type(odd)>* {
+    color: #e0e0e0;
+    box-shadow: inset 0 0 0 9999px rgba(255, 255, 255, 0.03);
+    /* Faint white highlight */
+}
+
+/* Hover effect on table rows */
+.table-hover>tbody>tr:hover>* {
+    color: #fff;
+    box-shadow: inset 0 0 0 9999px rgba(255, 255, 255, 0.08);
+    /* Stronger highlight */
+}
+
+/* Modal (Popup Window) Styles */
+.modal-content {
+    background: rgba(25, 35, 45, 0.95);
+    /* Dark solidish background */
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    color: #fff;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Make the 'X' close button white */
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+
+/* Form Input Boxes (Textboxes, Dropdowns) */
+.form-control,
+.form-select {
+    background: #2c3e50 !important;
+    /* Solid dark grey background */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff !important;
+    /* White text when typing */
+}
+
+/* When you click inside an input box */
+.form-control:focus,
+.form-select:focus {
+    background: rgba(0, 0, 0, 0.3);
+    /* Switch to transparent dark */
+    border-color: var(--primary-color);
+    /* Cyan border */
+    color: #fff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 210, 255, 0.25);
+    /* Cyan outer glow */
+}
+
+
+/* 
+---------------------------------------------------------
+  7. UTILITIES & SMALL FIXES
+---------------------------------------------------------
+Small helper classes for formatting text and links.
+*/
+
+.hero-title {
+    color: #fff;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    /* Shadow to make text readable on busy backgrounds */
+}
+
+.hero-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    /* Faded white */
+}
+
+.text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.text-success {
+    color: #4ade80 !important;
+    /* Bright green text */
+}
+
+/* Links */
+a {
+    color: var(--primary-color);
+    /* Cyan links */
+    text-decoration: none;
+    /* Remove underline */
+}
+
+a:hover {
+    color: #fff;
+    /* Turn white on hover */
+    text-shadow: 0 0 8px var(--primary-color);
+    /* Glow effect */
+}
+
+/* Alert boxes (Info messages) */
+.alert-info {
+    background: rgba(23, 162, 184, 0.2);
+    border-color: rgba(23, 162, 184, 0.5);
+    color: #ffffff;
+}
+
+/* Horizontal Line (<hr>) */
+hr {
+    border-color: rgba(255, 255, 255, 0.2);
+    opacity: 1;
+}
+
+
+/* 
+---------------------------------------------------------
+  8. MOBILE RESPONSIVENESS (Phones and Tablets)
+---------------------------------------------------------
+These rules ONLY apply when the screen width is 768px or less.
+It makes sure the website looks good on mobile devices.
+*/
+@media (max-width: 768px) {
+
+    /* Make very large titles a bit smaller on phones */
+    .hero-title {
+        font-size: 2.2rem;
+    }
+
+    /* Add space between stacked cards on phones */
+    .card {
+        margin-bottom: 15px;
+    }
+
+    /* Mobile Navigation Menu Dropdown Style */
+    .navbar-collapse {
+        background: rgba(15, 25, 35, 0.98);
+        /* Solid dark background */
+        padding: 15px;
+        /* Spacing inside menu */
+        border-radius: 10px;
+        /* Rounded corners */
+        margin-top: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Mobile Menu Button (Hamburger icon) */
+    .navbar-toggler {
+        border-color: rgba(255, 255, 255, 0.8) !important;
+        border-width: 2px !important;
+    }
+
+    /* Custom drawing for the 'Hamburger' icon */
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='3' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+    }
+}
