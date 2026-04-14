@@ -160,11 +160,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise for serving static files in production.
-# Use CompressedStaticFilesStorage (NOT CompressedManifest) to avoid
-# crashes when staticfiles.json is missing on Vercel cold starts.
-if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+# WhiteNoise for serving static files.
+# Use CompressedStaticFilesStorage always (not just non-DEBUG) so files
+# are served correctly on Vercel regardless of the DEBUG env variable.
+# NOT using CompressedManifest variant to avoid crashes if staticfiles.json is missing.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
