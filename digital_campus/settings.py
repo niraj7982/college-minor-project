@@ -20,6 +20,28 @@ IS_VERCEL = bool(os.environ.get('VERCEL', ''))
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _load_local_env_file(file_path):
+    """Minimal .env loader for local development."""
+    if not file_path.exists():
+        return
+    for raw_line in file_path.read_text(encoding='utf-8').splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        key = key.strip()
+        value = value.strip()
+        if value and ((value[0] == value[-1]) and value[0] in ("'", '"')):
+            value = value[1:-1]
+        os.environ.setdefault(key, value)
+
+
+# Load local env variables when running outside Vercel.
+if not IS_VERCEL:
+    _load_local_env_file(BASE_DIR / '.env.local')
+    _load_local_env_file(BASE_DIR / '.env')
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -95,11 +117,16 @@ WSGI_APPLICATION = 'digital_campus.wsgi.application'
 
 if IS_VERCEL:
     import shutil
-    DB_SOURCE = BASE_DIR / 'db.sqlite3'
+    # Use the actual bundled database name instead of assuming db.sqlite3
+    db_name = os.environ.get('SQLITE_DB_NAME', 'db_local.sqlite3')
+    DB_SOURCE = BASE_DIR / db_name
     DB_DEST = Path('/tmp/db.sqlite3')
     # Copy the bundled DB to /tmp on every cold start (Vercel project dir is read-only)
     if DB_SOURCE.exists():
         shutil.copy2(DB_SOURCE, DB_DEST)
+    else:
+        print(f"WARNING: Database {DB_SOURCE} not found! Vercel will start with an empty DB.")
+        
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -107,17 +134,26 @@ if IS_VERCEL:
         }
     }
 else:
+    local_db_name = os.environ.get('SQLITE_DB_NAME', 'db.sqlite3')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': BASE_DIR / local_db_name,
+            'OPTIONS': {
+                'timeout': 20,  # 20 second timeout for database locks
+                'init_command': "PRAGMA journal_mode=WAL;",  # Write-Ahead Logging for better concurrency
+            }
         }
     }
 
-# Sessions: use signed cookies on Vercel (no disk writes needed).
-# Warning: session data is stored in the cookie — keep chat history short.
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
-# Raise cookie size limit slightly (default 4096 bytes — increase for chat history)
+# Sessions
+if IS_VERCEL:
+    # use signed cookies on Vercel (no disk writes needed, but keep chat history short)
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+else:
+    # use default DB sessions locally for better performance with large payloads
+    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = IS_VERCEL  # HTTPS only on Vercel
 
@@ -140,6 +176,24 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+if not IS_VERCEL and DEBUG:
+    # Use MD5 hasher for fast user creation and login in local dev only
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+        'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    ]
+else:
+    # Allow MD5 hasher as a fallback since local db.sqlite3 synced to Vercel contains MD5 hashed passwords
+    # IMPORTANT: MD5 MUST be the FIRST hasher so Django does not auto-upgrade the password.
+    # Auto-upgrading updates the DB, which gets lost on Vercel cold-starts, causing session hash mismatch logouts!
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+        'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+        'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+        'django.contrib.auth.hashers.Argon2PasswordHasher',
+        'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+        'django.contrib.auth.hashers.ScryptPasswordHasher',
+    ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -160,11 +214,14 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise for serving static files.
-# Use CompressedStaticFilesStorage always (not just non-DEBUG) so files
-# are served correctly on Vercel regardless of the DEBUG env variable.
-# NOT using CompressedManifest variant to avoid crashes if staticfiles.json is missing.
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+if IS_VERCEL or not DEBUG:
+    # WhiteNoise for serving static files in production.
+    # Use CompressedStaticFilesStorage so files are served correctly on Vercel.
+    # NOT using CompressedManifest variant to avoid crashes if staticfiles.json is missing.
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+else:
+    # Fast native django static files for local development
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -183,3 +240,4 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # --- Gemini AI Chatbot ---
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+

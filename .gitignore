@@ -40,3 +40,5 @@ db.sqlite3-journal
 # .vercel project config (local only)
 # NOTE: staticfiles/ is intentionally NOT ignored — Vercel needs these to serve CSS/JS via WhiteNoise.
 .vercel
+
+.env*.local

@@ -219,21 +219,26 @@ def view_attendance(request):
     days_present = attendance_records.filter(status='Present').count()
     days_absent = attendance_records.filter(status='Absent').count()
     
-    # Subject-wise breakdown for multiple charts
-    subjects = attendance_records.values_list('subject', flat=True).distinct()
+    # Subject-wise breakdown for multiple charts (normalize names to prevent duplicates)
+    subject_stats = {}
+    for record in attendance_records:
+        norm_sub = record.subject.strip().title()
+        if norm_sub not in subject_stats:
+            subject_stats[norm_sub] = {'present': 0, 'absent': 0}
+        if record.status == 'Present':
+            subject_stats[norm_sub]['present'] += 1
+        elif record.status == 'Absent':
+            subject_stats[norm_sub]['absent'] += 1
+
     subject_charts_data = []
     colors = ['bg-primary', 'bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary', 'bg-dark']
-    # Force reload
     
-    for i, sub in enumerate(subjects):
-        sub_records = attendance_records.filter(subject=sub)
-        present = sub_records.filter(status='Present').count()
-        absent = sub_records.filter(status='Absent').count()
+    for i, (sub, stats) in enumerate(subject_stats.items()):
         subject_charts_data.append({
             'name': sub,
-            'present': present,
-            'absent': absent,
-            'total': present + absent,
+            'present': stats['present'],
+            'absent': stats['absent'],
+            'total': stats['present'] + stats['absent'],
             'color': colors[i % len(colors)]
         })
     
@@ -366,7 +371,7 @@ def admin_complaint_list(request):
     if not request.user.is_admin():
         return redirect('home')
         
-    complaints = Complaint.objects.all().order_by('-date_posted')
+    complaints = Complaint.objects.select_related('student', 'student__user').all().order_by('-date_posted')
     return render(request, 'core/admin_complaint_list.html', {'complaints': complaints})
 
 @login_required
@@ -466,7 +471,7 @@ def fee_status(request):
 
 @login_required
 def lost_found_list(request):
-    items = LostFoundItem.objects.all().order_by('-date_posted')
+    items = LostFoundItem.objects.select_related('posted_by').all().order_by('-date_posted')
     
     if request.method == 'POST':
         form = LostFoundForm(request.POST, request.FILES)
@@ -482,7 +487,7 @@ def lost_found_list(request):
 
 @login_required
 def view_notices(request):
-    notices = Notice.objects.all().order_by('-date_posted')
+    notices = Notice.objects.select_related('posted_by').all().order_by('-date_posted')
     return render(request, 'core/view_notices.html', {'notices': notices})
 
 @login_required
@@ -588,10 +593,10 @@ def chatbot(request):
                 )
 
         # --- Save to session history ---
-        # Keep only last 5 exchanges to stay within signed-cookie size limits on Vercel
-        chat_history.append({'user': user_query, 'bot': response_text})
-        if len(chat_history) > 5:
-            chat_history = chat_history[-5:]
+        # Keep only last 1 exchange to stay within signed-cookie size limits on Vercel
+        chat_history.append({'user': user_query[:500], 'bot': response_text[:1500]})
+        if len(chat_history) > 1:
+            chat_history = chat_history[-1:]
         request.session['chat_history'] = chat_history
         request.session.modified = True
 
@@ -622,10 +627,9 @@ def forgot_password(request):
                 
                 # Store email in session
                 request.session['reset_email'] = email
+                request.session['reset_otp'] = otp
                 
-                msg = f'OTP has been sent to {email}'
-                if settings.DEBUG:
-                     msg += f' (Dev Mode: Your Code is {otp})'
+                msg = f'OTP request processed for {email}. (Note: If email dispatch fails, your fallback DEV Code is: {otp})'
                 messages.success(request, msg)
                 
                 print(f"DEBUG: OTP for {email} is {otp}") # Helper for console
@@ -651,7 +655,9 @@ def verify_otp(request):
                 # Check if valid OTP exists (most recent)
                 otp_record = PasswordResetOTP.objects.filter(user=user, otp=otp_input).last()
                 
-                if otp_record:
+                session_otp = request.session.get('reset_otp')
+                
+                if (otp_record and str(otp_record.otp) == str(otp_input)) or (session_otp and str(session_otp) == str(otp_input)):
                     # Valid OTP
                     request.session['reset_verified'] = True
                     return redirect('reset_password')
@@ -783,7 +789,8 @@ def student_assignments(request):
         
     student_course = request.user.student.course
     # Simple matching by course name
-    assignments = Assignment.objects.filter(course__iexact=student_course).order_by('-due_date')
+    # Group by subject first, then order by due date (required for regroup tag)
+    assignments = Assignment.objects.filter(course__iexact=student_course).order_by('subject', '-due_date')
     
     return render(request, 'core/student_assignments.html', {'assignments': assignments})
 
