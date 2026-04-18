@@ -34,6 +34,17 @@ class User(AbstractUser):
             self.role = 'admin'
         super().save(*args, **kwargs)
 
+    def check_password(self, raw_password):
+        """
+        Override check_password to prevent Django from auto-upgrading passwords.
+        On Vercel, the database is ephemeral. Upgrading a password updates the DB locally,
+        but changes are lost on cold starts. This causes a mismatch between the session 
+        auth hash (based on the new password hash) and the DB auth hash (based on the old 
+        password hash), logging the user out.
+        """
+        from django.contrib.auth.hashers import check_password
+        return check_password(raw_password, self.password)
+
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     roll_no = models.CharField(max_length=20, unique=True)

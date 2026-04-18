@@ -8,40 +8,58 @@
     </div>
 
     {% if assignments %}
-    <div class="row">
-        {% for assignment in assignments %}
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 shadow text-dark" style="background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.1);">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ assignment.subject }}</h5>
-                    {% if assignment.is_closed %}
-                        <span class="badge bg-danger text-white">Closed</span>
-                    {% else %}
-                        <span class="badge bg-warning text-dark">Due: {{ assignment.due_date }}</span>
-                    {% endif %}
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ assignment.title }}</h5>
-                    <p class="card-text">{{ assignment.description|truncatewords:20 }}</p>
+    {% regroup assignments by subject as assignments_by_subject %}
+    
+    <div class="accordion" id="assignmentsAccordion">
+        {% for subject_group in assignments_by_subject %}
+        <div class="accordion-item shadow-sm mb-3 border-0 rounded" style="background: rgba(40, 50, 60, 0.6); backdrop-filter: blur(10px);">
+            <h2 class="accordion-header" id="heading-{{ forloop.counter }}">
+                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse-{{ forloop.counter }}" style="background-color: rgba(255, 255, 255, 0.1); color: #fff; outline: none; border: none; box-shadow: none;">
+                    {{ subject_group.grouper }}
+                    <span class="badge bg-primary ms-3 rounded-pill">{{ subject_group.list|length }}</span>
+                </button>
+            </h2>
+            <div id="collapse-{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading-{{ forloop.counter }}" data-bs-parent="#assignmentsAccordion">
+                <div class="accordion-body px-4 py-4" style="background: rgba(0, 0, 0, 0.4);">
+                    <div class="row">
+                        {% for assignment in subject_group.list %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 shadow border-0" style="background: rgba(255, 255, 255, 0.05); color: #fff;">
+                                <div class="card-header d-flex justify-content-between align-items-center border-bottom-0 pt-3 text-white" style="background: transparent;">
+                                    <h5 class="mb-0 text-truncate text-info" style="max-width: 60%;" title="{{ assignment.title }}">{{ assignment.title }}</h5>
+                                    {% if assignment.is_closed %}
+                                        <span class="badge bg-danger text-white border border-danger">Closed</span>
+                                    {% else %}
+                                        <span class="badge" style="background-color: #00E676; color: #000;">Due: {{ assignment.due_date }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text text-white-50">{{ assignment.description|truncatewords:20 }}</p>
 
-                    {% if assignment.file %}
-                    <p><a href="{{ assignment.file.url }}" class="text-decoration-none" target="_blank">
-                            <i class="bi bi-paperclip"></i> View Question Paper
-                        </a></p>
-                    {% endif %}
-                </div>
-                <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
-                    <small class="text-muted">Posted: {{ assignment.created_at|date:"M d, Y" }}</small>
-                    <a href="{% url 'submit_assignment' assignment.id %}" class="btn {% if assignment.is_closed %}btn-secondary{% else %}btn-primary{% endif %} btn-sm">
-                        {% if assignment.is_closed %}View{% else %}Submit / View{% endif %}
-                    </a>
+                                    {% if assignment.file %}
+                                    <p><a href="{{ assignment.file.url }}" class="text-decoration-none fw-semibold border border-secondary px-2 py-1 rounded shadow-sm text-white" target="_blank" style="background: rgba(255,255,255,0.1);">
+                                            <i class="bi bi-paperclip"></i> View Question Paper
+                                        </a></p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer border-top-0 d-flex justify-content-between align-items-center pb-3 pt-0" style="background: transparent;">
+                                    <small class="text-white-50">Posted: {{ assignment.created_at|date:"M d, Y" }}</small>
+                                    <a href="{% url 'submit_assignment' assignment.id %}" class="btn {% if assignment.is_closed %}btn-secondary{% else %}btn-primary{% endif %} btn-sm px-3 shadow-sm" style="border-radius: 8px;">
+                                        {% if assignment.is_closed %}View Details{% else %}Submit / View{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div class="alert alert-info">
+    <div class="alert alert-info border-0 shadow text-center py-4" style="background: rgba(23, 162, 184, 0.2); color: #fff; backdrop-filter: blur(5px);">
+        <i class="bi bi-inbox fs-4 d-block mb-2"></i>
         No assignments found for your course ({{ user.student.course }}).
     </div>
     {% endif %}
