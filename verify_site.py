@@ -1,13 +1,14 @@
 import os
 import django
+
+# Setup Django environment
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'digital_campus.settings')
+django.setup()
+
 from django.conf import settings
 from django.test import Client
 from django.contrib.auth import get_user_model
 from core.models import Student
-
-# Setup Django environment
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'digital_campus.settings')
-# django.setup()
 
 User = get_user_model()
 

@@ -56,8 +56,10 @@ urlpatterns = [
     # Online Quiz
     path('quiz/', views.quiz_list, name='quiz_list'),
     path('quiz/create/', views.create_quiz, name='create_quiz'),
+    path('quiz/edit/<int:quiz_id>/', views.edit_quiz, name='edit_quiz'),
     path('quiz/add_question/<int:quiz_id>/', views.add_question, name='add_question'),
     path('quiz/take/<int:quiz_id>/', views.take_quiz, name='take_quiz'),
+    path('quiz/results/<int:quiz_id>/', views.view_quiz_results, name='view_quiz_results'),
     # Bus Tracking & Management
     path('driver/dashboard/', views.driver_dashboard, name='driver_dashboard'),
     path('bus/track/', views.track_bus, name='track_bus'),
@@ -74,6 +76,7 @@ urlpatterns = [
     path('manage-users/verify/', views.admin_verify_users, name='admin_verify_users'),
     path('manage-users/approve/<int:user_id>/', views.approve_user, name='approve_user'),
     path('manage-users/reject/<int:user_id>/', views.reject_user, name='reject_user'),
+    path('manage-users/toggle-approval/', views.toggle_approval_mode, name='toggle_approval_mode'),
     
     # Admin Fees
     path('manage-fees/', views.admin_fee_list, name='admin_fee_list'),

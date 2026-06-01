@@ -9,6 +9,10 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'digital_campus.settings')
 django.setup()
 
+from django.conf import settings
+if 'testserver' not in settings.ALLOWED_HOSTS:
+    settings.ALLOWED_HOSTS.append('testserver')
+
 from django.test import Client
 from django.contrib.auth import get_user_model
 from core.models import Student
@@ -40,7 +44,8 @@ def test_user_verification_client():
         'role': 'student',
         'roll_no': roll_no,
         'course': 'B.Tech',
-        'department': 'CS'
+        'department': 'CS',
+        'semester': '1st Semester'
     }, follow=True)
     
     print(f"Signup Response Status: {response.status_code}")

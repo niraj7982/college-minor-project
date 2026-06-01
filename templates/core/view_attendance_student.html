@@ -1,6 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    @media print {
+        .btn, .navbar, footer, .btn-secondary, .btn-outline-info {
+            display: none !important;
+        }
+        .card {
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+            background: white !important;
+            color: black !important;
+        }
+        body {
+            background: white !important;
+            color: black !important;
+        }
+        .text-white-50, .text-muted {
+            color: #666 !important;
+        }
+    }
+</style>
 <!-- Page Header -->
 <div class="d-flex align-items-center justify-content-between mb-4 mt-2">
     <div>
@@ -9,10 +29,15 @@
         </h2>
         <p class="text-white-50 mb-0 small">A full breakdown of attendance records and subject-wise analytics.</p>
     </div>
-    <a href="{% if is_admin %}{% url 'admin_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
-        class="btn btn-secondary">
-        &larr; Back to Dashboard
-    </a>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-outline-info">
+            <i class="fas fa-print"></i> Print / Save PDF
+        </button>
+        <a href="{% if is_admin %}{% url 'admin_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
+            class="btn btn-secondary">
+            &larr; Back to Dashboard
+        </a>
+    </div>
 </div>
 
 <!-- Summary Stats Row -->

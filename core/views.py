@@ -11,7 +11,33 @@ import io
 from datetime import date
 
 from .forms import LoginForm, SignupForm, ComplaintForm, FeedbackForm, LostFoundForm, ForgotPasswordForm, VerifyOTPForm, NewPasswordForm, ChatbotTrainingForm, AssignmentForm, SubmissionForm, ResourceForm, QuizForm, QuestionForm, BusForm, FeeForm
-from .models import User, Student, Teacher, Driver, Bus, Attendance, Marks, Notice, Complaint, Feedback, Fee, LostFoundItem, PasswordResetOTP, ChatbotTrainingData, Assignment, Submission, Resource, Quiz, Question, QuizResult, AttendanceUpload
+from .models import User, Student, Teacher, Driver, Bus, Attendance, Marks, Notice, Complaint, Feedback, Fee, LostFoundItem, PasswordResetOTP, ChatbotTrainingData, Assignment, Submission, Resource, Quiz, Question, QuizResult, AttendanceUpload, SiteSettings
+import re
+
+def normalize_str(s):
+    if not s:
+        return ""
+    return re.sub(r'[^a-zA-Z0-9]', '', s).lower()
+
+def match_value(val1, val2):
+    """Checks if two strings are a match, ignoring casing, punctuation, and allowing substring matches."""
+    norm1 = normalize_str(val1)
+    norm2 = normalize_str(val2)
+    if not norm1 or not norm2 or norm1 == 'general' or norm1 == 'empty' or norm2 == 'general' or norm2 == 'empty':
+        return True
+    return (norm1 in norm2) or (norm2 in norm1)
+
+def match_semester(sem1, sem2):
+    """Checks if two semesters match, extracting digits to match numbers like '6' and '6th'/'6st'."""
+    norm1 = normalize_str(sem1)
+    norm2 = normalize_str(sem2)
+    if not norm1 or not norm2 or norm1 == 'general' or norm1 == 'empty' or norm2 == 'general' or norm2 == 'empty':
+        return True
+    d1 = "".join(filter(str.isdigit, norm1))
+    d2 = "".join(filter(str.isdigit, norm2))
+    if d1 and d2:
+        return d1 == d2
+    return (norm1 in norm2) or (norm2 in norm1)
 
 def index(request):
     return render(request, 'core/index.html')
@@ -52,7 +78,13 @@ def signup_view(request):
             user.set_password(form.cleaned_data['password'])
             user.email = form.cleaned_data['email']  # Explicitly save email
             user.role = form.cleaned_data['role']
-            user.is_active = False #  # Deactivate account until admin approval
+            
+            # Check site-wide approval setting
+            site_settings = SiteSettings.get_settings()
+            if site_settings.require_approval:
+                user.is_active = False  # Needs admin approval
+            else:
+                user.is_active = True  # Auto-approved
             user.save()
             
             # Create Profile
@@ -61,7 +93,8 @@ def signup_view(request):
                     user=user,
                     roll_no=form.cleaned_data['roll_no'],
                     course=form.cleaned_data['course'],
-                    department=form.cleaned_data['department']
+                    department=form.cleaned_data['department'],
+                    semester=form.cleaned_data.get('semester', '1st Semester')
                 )
             elif user.role == 'teacher':
                 Teacher.objects.create(
@@ -75,7 +108,10 @@ def signup_view(request):
                     license_number=form.cleaned_data['license_number']
                 )
                 
-            messages.info(request, 'Your account has been created and is pending approval by the admin. Please wait for verification.')
+            if site_settings.require_approval:
+                messages.info(request, 'Your account has been created. Please wait for admin approval before logging in.')
+            else:
+                messages.success(request, 'Your account has been created successfully. You can now login.')
             return redirect('login')
     else:
         form = SignupForm()
@@ -152,14 +188,25 @@ def take_attendance(request):
     if request.method == 'POST':
         subject = request.POST.get('subject')
         course = request.POST.get('course')
+        department = request.POST.get('department')
+        semester = request.POST.get('semester')
         # Debug print
-        print(f"Taking attendance for Course: {course}, Subject: {subject}")
+        print(f"Taking attendance for Course: {course}, Dept: {department}, Sem: {semester}, Subject: {subject}")
         
-        students = Student.objects.filter(course=course)
+        # Use flexible matching instead of rigid iexact DB matches
+        all_students = Student.objects.select_related('user').all()
+        students = [
+            s for s in all_students 
+            if match_value(s.course, course) 
+            and match_value(s.department, department) 
+            and match_semester(s.semester, semester)
+        ]
         context = {
             'students': students, 
             'subject': subject, 
-            'course': course
+            'course': course,
+            'department': department,
+            'semester': semester
         }
         return render(request, 'core/mark_attendance.html', context)
     
@@ -260,15 +307,26 @@ def add_marks(request):
     
     if request.method == 'POST':
         course = request.POST.get('course')
+        department = request.POST.get('department')
+        semester = request.POST.get('semester')
         subject = request.POST.get('subject')
         total_marks = request.POST.get('total_marks')
         exam_type = request.POST.get('exam_type')
         
-        students = Student.objects.filter(course__iexact=course)
+        # Use flexible matching instead of rigid iexact DB matches
+        all_students = Student.objects.select_related('user').all()
+        students = [
+            s for s in all_students 
+            if match_value(s.course, course) 
+            and match_value(s.department, department) 
+            and match_semester(s.semester, semester)
+        ]
         
         context = {
             'students': students,
             'course': course,
+            'department': department,
+            'semester': semester,
             'subject': subject,
             'total_marks': total_marks,
             'exam_type': exam_type,
@@ -356,6 +414,8 @@ def create_notice(request):
             title=title,
             content=content,
             category=category,
+            department=request.POST.get('department', 'General'),
+            semester=request.POST.get('semester', 'General'),
             file=notice_file,
             posted_by=request.user
         )
@@ -395,8 +455,12 @@ def admin_verify_users(request):
     if not request.user.is_admin():
         return redirect('home')
         
-    pending_users = User.objects.filter(is_active=False).order_by('-date_joined')
-    return render(request, 'core/admin_verify_users.html', {'pending_users': pending_users})
+    pending_users = User.objects.filter(is_active=False).exclude(role='admin').order_by('-date_joined')
+    site_settings = SiteSettings.get_settings()
+    return render(request, 'core/admin_verify_users.html', {
+        'pending_users': pending_users,
+        'require_approval': site_settings.require_approval,
+    })
 
 @login_required
 def approve_user(request, user_id):
@@ -417,6 +481,23 @@ def reject_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user.delete()
     messages.success(request, f'User {user.username} has been rejected and removed.')
+    return redirect('admin_verify_users')
+
+@login_required
+def toggle_approval_mode(request):
+    """Toggle the site-wide signup approval requirement on/off."""
+    if not request.user.is_admin():
+        return redirect('home')
+    
+    site_settings = SiteSettings.get_settings()
+    site_settings.require_approval = not site_settings.require_approval
+    site_settings.save()
+    
+    if site_settings.require_approval:
+        messages.success(request, '🔒 Approval mode ON: New signups now require admin approval before login.')
+    else:
+        messages.success(request, '🔓 Approval mode OFF: New signups can log in immediately.')
+    
     return redirect('admin_verify_users')
 
 # --- Student Module Views ---
@@ -487,7 +568,25 @@ def lost_found_list(request):
 
 @login_required
 def view_notices(request):
-    notices = Notice.objects.select_related('posted_by').all().order_by('-date_posted')
+    dept = None
+    semester = None
+    if request.user.is_authenticated and request.user.is_student():
+        try:
+            dept = request.user.student.department
+            semester = request.user.student.semester
+        except Student.DoesNotExist:
+            pass
+
+    if dept or semester:
+        # Show General notices OR notices matching student's class flexibly
+        all_notices = Notice.objects.select_related('posted_by').all().order_by('-date_posted')
+        notices = []
+        for notice in all_notices:
+            if match_value(notice.department, dept) and match_semester(notice.semester, semester):
+                notices.append(notice)
+    else:
+        notices = Notice.objects.select_related('posted_by').all().order_by('-date_posted')
+        
     return render(request, 'core/view_notices.html', {'notices': notices})
 
 @login_required
@@ -559,38 +658,53 @@ def chatbot(request):
         elif 'exam' in query_lower:
             response_text = "For exam schedules, please check the 'Notices' section or contact the administration."
 
-        # --- Priority 3: Gemini AI fallback ---
+        # --- Priority 3: Ollama AI fallback ---
         else:
-            api_key = django_settings.GEMINI_API_KEY
-            if api_key:
-                try:
-                    genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel(
-                        model_name='gemini-2.0-flash',
-                        system_instruction=(
-                            "You are a helpful Campus Assistant for a Digital Campus platform used by "
-                            "students, teachers, and administrators. "
-                            "Your role is to answer academic, campus-related, and general educational questions clearly and helpfully. "
-                            "Keep responses concise and friendly. "
-                            "If asked something unrelated to academics or campus life, gently steer the conversation back."
-                        )
+            import urllib.request
+            import urllib.error
+            import json
+            
+            ollama_url = "http://127.0.0.1:11434/api/chat"
+            
+            # Build history for multi-turn context
+            messages_list = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a helpful Campus Assistant for a Digital Campus platform used by "
+                        "students, teachers, and administrators. "
+                        "Your role is to answer academic, campus-related, and general educational questions clearly and helpfully. "
+                        "Keep responses concise and friendly. "
+                        "If asked something unrelated to academics or campus life, gently steer the conversation back."
                     )
-                    # Build history for multi-turn context
-                    gemini_history = []
-                    for msg in chat_history[-10:]:   # last 10 turns for context
-                        gemini_history.append({'role': 'user', 'parts': [msg['user']]})
-                        gemini_history.append({'role': 'model', 'parts': [msg['bot']]})
+                }
+            ]
+            for msg in chat_history[-10:]:
+                messages_list.append({"role": "user", "content": msg['user']})
+                messages_list.append({"role": "assistant", "content": msg['bot']})
+            
+            messages_list.append({"role": "user", "content": user_query})
 
-                    chat_session = model.start_chat(history=gemini_history)
-                    gemini_response = chat_session.send_message(user_query)
-                    response_text = gemini_response.text
-                except Exception as e:
-                    response_text = f"Sorry, I couldn't reach the AI service right now. Please try again shortly. (Error: {e})"
-            else:
-                response_text = (
-                    "I'm not sure about that. Try asking about teachers, fees, attendance, marks, or exams. "
-                    "(Gemini AI key not configured.)"
-                )
+            payload = {
+                "model": "deepseek-coder:latest",  # Using the user's local model
+                "messages": messages_list,
+                "stream": False
+            }
+            
+            data = json.dumps(payload).encode('utf-8')
+            req = urllib.request.Request(ollama_url, data=data, headers={'Content-Type': 'application/json'})
+            
+            try:
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    response_text = result.get('message', {}).get('content', '')
+            except urllib.error.HTTPError as e:
+                error_body = e.read().decode('utf-8')
+                response_text = f"Ollama HTTP Error {e.code}: {error_body}. If it says 'model not found', open your terminal and run 'ollama pull deepseek-coder:latest'."
+            except urllib.error.URLError as e:
+                response_text = f"Sorry, I couldn't reach the local AI service. Please ensure Ollama is running. (Error: {e})"
+            except Exception as e:
+                response_text = f"An error occurred while calling Ollama: {e}"
 
         # --- Save to session history ---
         # Keep only last 1 exchange to stay within signed-cookie size limits on Vercel
@@ -787,10 +901,16 @@ def student_assignments(request):
     if not request.user.is_student():
         return redirect('home')
         
-    student_course = request.user.student.course
-    # Simple matching by course name
-    # Group by subject first, then order by due date (required for regroup tag)
-    assignments = Assignment.objects.filter(course__iexact=student_course).order_by('subject', '-due_date')
+    student = request.user.student
+    student_course = student.course
+    student_semester = student.semester
+    # Filter by both course AND semester flexibly
+    all_assignments = Assignment.objects.all().order_by('subject', '-due_date')
+    assignments = [
+        ass for ass in all_assignments 
+        if match_value(ass.course, student_course) 
+        and match_semester(ass.semester, student_semester)
+    ]
     
     return render(request, 'core/student_assignments.html', {'assignments': assignments})
 
@@ -843,9 +963,11 @@ def submit_assignment(request, assignment_id):
 @login_required
 def resource_list(request):
     dept = None
+    semester = None
     if request.user.is_student():
         try:
             dept = request.user.student.department
+            semester = request.user.student.semester
         except Student.DoesNotExist:
             dept = None
     elif request.user.is_teacher():
@@ -855,20 +977,31 @@ def resource_list(request):
             dept = None
             
     # Filter resources
-    from django.db.models import Q
     if request.user.is_admin():
         # Admin sees all
         resources = Resource.objects.filter(is_approved=True).order_by('-date_uploaded')
     else:
-        # Show resources for this department, General, empty, or uploaded by user
-        dept_q = Q(department__iexact='General') | Q(department__iexact='')
-        if dept:
-            dept_q |= Q(department__iexact=dept)
+        # Show resources matching the user's department, or uploaded by them.
+        # Students are also filtered by semester; teachers are not.
+        all_approved = Resource.objects.filter(is_approved=True).order_by('-date_uploaded')
+        resources = []
+        for res in all_approved:
+            # Always show resource if uploaded by the user themselves
+            if res.uploaded_by == request.user:
+                resources.append(res)
+                continue
             
-        resources = Resource.objects.filter(
-            Q(is_approved=True) & (dept_q | Q(uploaded_by=request.user))
-        ).distinct().order_by('-date_uploaded')
-    
+            # Match department
+            dept_match = match_value(res.department, dept)
+            
+            # Match semester (only for students, since teachers don't have a semester check)
+            sem_match = True
+            if request.user.is_student():
+                sem_match = match_semester(res.semester, semester)
+                
+            if dept_match and sem_match:
+                resources.append(res)
+
     pending_resources = None
     if request.user.is_teacher():
         # Teachers see all pending resources, so that mistyped departments aren't stuck hidden forever.
@@ -932,23 +1065,63 @@ def delete_resource(request, resource_id):
 @login_required
 def quiz_list(request):
     dept = None
+    course = None
+    semester = None
+    teacher_profile = None
     if request.user.is_student():
         try:
             dept = request.user.student.department
+            course = request.user.student.course
+            semester = request.user.student.semester
         except Student.DoesNotExist:
-            dept = None
+            pass
     elif request.user.is_teacher():
         try:
-            dept = request.user.teacher.department
+            teacher_profile = request.user.teacher
+            dept = teacher_profile.department
         except Teacher.DoesNotExist:
-            dept = None
+            pass
             
-    if dept:
-        quizzes = Quiz.objects.filter(department__iexact=dept).order_by('-created_at')
-    elif request.user.is_admin():
-        quizzes = Quiz.objects.all().order_by('-created_at')
+    if request.user.is_admin():
+        quizzes = list(Quiz.objects.all().order_by('-created_at'))
+    elif request.user.is_teacher() and teacher_profile:
+        # Teachers see quizzes they created, or quizzes matching their department
+        all_quizzes = Quiz.objects.all().order_by('-created_at')
+        quizzes = []
+        for q in all_quizzes:
+            is_author = (q.teacher == teacher_profile)
+            dept_match = dept and match_value(q.department, dept)
+            if is_author or dept_match:
+                quizzes.append(q)
+    elif request.user.is_student():
+        all_quizzes = Quiz.objects.all().order_by('-created_at')
+        quizzes = []
+        for q in all_quizzes:
+            # Check department or course match
+            dept_match = False
+            if dept and match_value(q.department, dept):
+                dept_match = True
+            if course and match_value(q.department, course):
+                dept_match = True
+                
+            # Check semester match
+            sem_match = True
+            if semester:
+                sem_match = match_semester(q.semester, semester)
+                
+            if dept_match and sem_match:
+                quizzes.append(q)
     else:
-        quizzes = Quiz.objects.none()
+        quizzes = []
+
+    # If student, annotate quizzes with user's results
+    if request.user.is_student():
+        try:
+            student_results = {r.quiz_id: r for r in QuizResult.objects.filter(student=request.user.student)}
+            for q in quizzes:
+                q.user_result = student_results.get(q.id)
+        except Student.DoesNotExist:
+            pass
 
     return render(request, 'core/quiz_list.html', {
         'quizzes': quizzes, 
@@ -1428,5 +1601,43 @@ def pay_fee(request, fee_id):
         return redirect('fee_status')
         
     return render(request, 'core/pay_fee.html', {'fee': fee})
+
+@login_required
+def view_quiz_results(request, quiz_id):
+    if not request.user.is_teacher():
+        return redirect('home')
+        
+    try:
+        teacher_profile = request.user.teacher
+    except Teacher.DoesNotExist:
+        return redirect('home')
+        
+    quiz = get_object_or_404(Quiz, id=quiz_id, teacher=teacher_profile)
+    results = QuizResult.objects.filter(quiz=quiz).select_related('student', 'student__user').order_by('-submitted_at')
+    
+    return render(request, 'core/view_quiz_results.html', {'quiz': quiz, 'results': results})
+
+@login_required
+def edit_quiz(request, quiz_id):
+    if not request.user.is_teacher():
+        return redirect('quiz_list')
+        
+    try:
+        teacher_profile = request.user.teacher
+    except Teacher.DoesNotExist:
+        return redirect('quiz_list')
+        
+    quiz = get_object_or_404(Quiz, id=quiz_id, teacher=teacher_profile)
+    
+    if request.method == 'POST':
+        form = QuizForm(request.POST, instance=quiz)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Quiz updated successfully!')
+            return redirect('quiz_list')
+    else:
+        form = QuizForm(instance=quiz)
+        
+    return render(request, 'core/edit_quiz.html', {'form': form, 'quiz': quiz})
 
 

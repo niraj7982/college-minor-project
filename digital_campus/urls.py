@@ -25,7 +25,27 @@ urlpatterns = [
 ]
 
 from django.conf import settings
-from django.conf.urls.static import static
+from django.views.static import serve
+from django.urls import re_path
+from django.http import Http404
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+def vercel_media_serve(request, path, document_root=None, **kwargs):
+    try:
+        return serve(request, path, document_root=document_root, **kwargs)
+    except Http404:
+        fallback_root = settings.BASE_DIR / 'media'
+        if str(document_root) != str(fallback_root):
+            try:
+                return serve(request, path, document_root=fallback_root, **kwargs)
+            except Http404:
+                pass
+        raise
+
+if settings.DEBUG or getattr(settings, 'IS_VERCEL', False):
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', vercel_media_serve, {
+            'document_root': settings.MEDIA_ROOT,
+        }),
+    ]
+
+

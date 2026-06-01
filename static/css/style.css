@@ -459,3 +459,39 @@ It makes sure the website looks good on mobile devices.
         filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
     }
 }
+
+/* 
+---------------------------------------------------------
+  9. FILE UPLOAD LIMIT ERRORS (Vercel Fix)
+---------------------------------------------------------
+Premium glassmorphic warning style for files exceeding size limits.
+*/
+.file-size-error {
+    background: rgba(255, 64, 129, 0.15) !important;
+    border: 1px solid rgba(255, 64, 129, 0.4) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    color: #fff;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(255, 64, 129, 0.2);
+    animation: fadeInSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.file-size-error i {
+    color: #ff4081;
+    margin-right: 8px;
+}
+
+@keyframes fadeInSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

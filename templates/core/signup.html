@@ -51,6 +51,7 @@
         const rollNoDiv = document.querySelector('#div_roll_no');
         const courseDiv = document.querySelector('#div_course');
         const deptDiv = document.querySelector('#div_department');
+        const semesterDiv = document.querySelector('#div_semester');
         const phoneDiv = document.querySelector('#div_phone_number');
         const licenseDiv = document.querySelector('#div_license_number');
 
@@ -60,6 +61,7 @@
             rollNoDiv.style.display = 'none';
             courseDiv.style.display = 'none';
             deptDiv.style.display = 'none';
+            if (semesterDiv) semesterDiv.style.display = 'none';
             if (phoneDiv) phoneDiv.style.display = 'none';
             if (licenseDiv) licenseDiv.style.display = 'none';
 
@@ -67,6 +69,7 @@
                 rollNoDiv.style.display = 'block';
                 courseDiv.style.display = 'block';
                 deptDiv.style.display = 'block';
+                if (semesterDiv) semesterDiv.style.display = 'block';
             } else if (role === 'teacher') {
                 deptDiv.style.display = 'block';
             } else if (role === 'driver') {

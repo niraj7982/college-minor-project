@@ -9,19 +9,27 @@
         <div class="card shadow mb-4" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
             <div class="card-body text-white">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <small class="text-muted text-uppercase fw-bold">Department</small>
+                        <p class="mb-0 fs-5">{{ department }}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-muted text-uppercase fw-bold">Semester</small>
+                        <p class="mb-0 fs-5">{{ semester }}</p>
+                    </div>
+                    <div class="col-md-2">
                         <small class="text-muted text-uppercase fw-bold">Course</small>
                         <p class="mb-0 fs-5">{{ course }}</p>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <small class="text-muted text-uppercase fw-bold">Subject</small>
                         <p class="mb-0 fs-5">{{ subject }}</p>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <small class="text-muted text-uppercase fw-bold">Exam Type</small>
                         <p class="mb-0 fs-5">{{ exam_type }}</p>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <small class="text-muted text-uppercase fw-bold">Total Marks</small>
                         <p class="mb-0 fs-5">{{ total_marks }}</p>
                     </div>
@@ -32,6 +40,8 @@
         <form action="{% url 'save_marks' %}" method="post">
             {% csrf_token %}
             <input type="hidden" name="course" value="{{ course }}">
+            <input type="hidden" name="department" value="{{ department }}">
+            <input type="hidden" name="semester" value="{{ semester }}">
             <input type="hidden" name="subject" value="{{ subject }}">
             <input type="hidden" name="total_marks" value="{{ total_marks }}">
             <input type="hidden" name="exam_type" value="{{ exam_type }}">
@@ -69,7 +79,7 @@
                         <tr>
                             <td colspan="3" class="text-center py-4 text-warning">
                                 <i class="bi bi-exclamation-triangle fs-4 d-block mb-2"></i>
-                                No students found enrolled in <strong>{{ course }}</strong>.
+                                No students found enrolled in <strong>{{ course }}</strong> / <strong>{{ department }}</strong> / <strong>{{ semester }}</strong>.
                             </td>
                         </tr>
                         {% endfor %}

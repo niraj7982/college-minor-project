@@ -82,4 +82,99 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.borderColor = ""; 
         });
     });
+
+    // ---------------------------------------------------------
+    // 5. GLOBAL FILE SIZE VALIDATION (Vercel 4.5MB Payload Limit)
+    // ---------------------------------------------------------
+    // Vercel serverless functions restrict the payload size to 4.5 MB.
+    // To prevent a generic 413 error screen, we check file inputs on change and form submission.
+    
+    const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024; // 4.0 MB (4,194,304 bytes) limit for safety
+
+    document.addEventListener('change', function(event) {
+        const target = event.target;
+        if (target && target.type === 'file') {
+            validateFileInput(target);
+        }
+    });
+
+    document.addEventListener('submit', function(event) {
+        const form = event.target;
+        const fileInputs = form.querySelectorAll('input[type="file"]');
+        let isValid = true;
+        
+        fileInputs.forEach(function(input) {
+            if (!validateFileInput(input)) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            event.preventDefault();
+            // Scroll to the first error container
+            const firstError = form.querySelector('.file-size-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
+    function validateFileInput(input) {
+        if (!input.files || input.files.length === 0) {
+            removeFileLimitError(input);
+            return true;
+        }
+
+        const file = input.files[0];
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+            // Clear the invalid file selection so it doesn't get submitted
+            input.value = '';
+            
+            // Format size strings
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            const limitSizeMB = (MAX_FILE_SIZE_BYTES / (1024 * 1024)).toFixed(2);
+            
+            // Show the error UI
+            showFileLimitError(input, `File <strong>${escapeHtml(file.name)}</strong> is too large (${fileSizeMB} MB). The maximum allowed size is <strong>${limitSizeMB} MB</strong> due to cloud server payload limits. Please choose a smaller file or compress it.`);
+            return false;
+        } else {
+            removeFileLimitError(input);
+            return true;
+        }
+    }
+
+    function showFileLimitError(input, message) {
+        // Clean existing errors first
+        removeFileLimitError(input);
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'file-size-error';
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+        
+        // Insert it after the input or its parent if it's in an input group
+        const insertAfterNode = input.closest('.input-group') || input;
+        if (insertAfterNode.parentNode) {
+            insertAfterNode.parentNode.insertBefore(errorDiv, insertAfterNode.nextSibling);
+        }
+    }
+
+    function removeFileLimitError(input) {
+        const wrapper = input.closest('.input-group') || input;
+        const parent = wrapper.parentNode;
+        if (parent) {
+            const errors = parent.querySelectorAll('.file-size-error');
+            errors.forEach(function(err) {
+                err.remove();
+            });
+        }
+    }
+
+    function escapeHtml(str) {
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 });

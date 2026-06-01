@@ -50,6 +50,7 @@ class Student(models.Model):
     roll_no = models.CharField(max_length=20, unique=True)
     course = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
+    semester = models.CharField(max_length=50, default='1st Semester')
 
     def __str__(self):
         return f"{self.user.username} ({self.roll_no})"
@@ -120,6 +121,8 @@ class Notice(models.Model):
     )
     title = models.CharField(max_length=200)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='General')
+    department = models.CharField(max_length=50, blank=True, null=True, default='General')
+    semester = models.CharField(max_length=20, blank=True, null=True, default='General')
     content = models.TextField()
     file = models.FileField(upload_to='notices/', blank=True, null=True)
     posted_by = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -205,6 +208,7 @@ class Assignment(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     subject = models.CharField(max_length=100)
     course = models.CharField(max_length=100)
+    semester = models.CharField(max_length=50, default='1st Semester')
     title = models.CharField(max_length=200)
     description = models.TextField()
     due_date = models.DateField()
@@ -242,6 +246,7 @@ class Resource(models.Model):
     resource_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     subject = models.CharField(max_length=100)
     department = models.CharField(max_length=100, default='General')
+    semester = models.CharField(max_length=50, default='1st Semester')
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
     is_approved = models.BooleanField(default=False)
     date_uploaded = models.DateTimeField(auto_now_add=True)
@@ -253,6 +258,7 @@ class Quiz(models.Model):
     title = models.CharField(max_length=200)
     subject = models.CharField(max_length=100)
     department = models.CharField(max_length=100, default='General')
+    semester = models.CharField(max_length=50, default='1st Semester')
     description = models.TextField(blank=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -297,3 +303,23 @@ class AttendanceUpload(models.Model):
     def __str__(self):
         return f"{self.teacher.user.username} - {self.subject} ({self.attendance_date})"
 
+
+class SiteSettings(models.Model):
+    """Singleton model to store global site configuration."""
+    require_approval = models.BooleanField(
+        default=True,
+        help_text="If enabled, new signups require admin approval before they can log in. If disabled, users can log in immediately after signing up."
+    )
+
+    class Meta:
+        verbose_name = "Site Settings"
+        verbose_name_plural = "Site Settings"
+
+    def __str__(self):
+        return "Site Settings"
+
+    @classmethod
+    def get_settings(cls):
+        """Always return the single settings object, creating it if needed."""
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

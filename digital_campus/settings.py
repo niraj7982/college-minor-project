@@ -115,7 +115,18 @@ WSGI_APPLICATION = 'digital_campus.wsgi.application'
 # On Vercel, the filesystem is read-only except for /tmp
 # We copy the SQLite DB to /tmp on startup for read/write access
 
-if IS_VERCEL:
+import dj_database_url
+
+if 'DATABASE_URL' in os.environ:
+    # Use persistent PostgreSQL database
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+elif IS_VERCEL:
     import shutil
     # Use the actual bundled database name instead of assuming db.sqlite3
     db_name = os.environ.get('SQLITE_DB_NAME', 'db_local.sqlite3')

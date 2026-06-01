@@ -285,7 +285,7 @@
           <div class="form-section-label" style="margin-top:1.5rem;">Target Class</div>
 
           <div class="row g-3 mb-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="field-label" for="id_course">Course / Class <span>*</span></label>
               {{ form.course }}
               {% if form.course.errors %}
@@ -294,7 +294,16 @@
                 {% endfor %}
               {% endif %}
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
+              <label class="field-label" for="id_semester">Semester <span>*</span></label>
+              {{ form.semester }}
+              {% if form.semester.errors %}
+                {% for error in form.semester.errors %}
+                  <div class="field-error">⚠️ {{ error }}</div>
+                {% endfor %}
+              {% endif %}
+            </div>
+            <div class="col-md-4">
               <label class="field-label" for="id_subject">Subject <span>*</span></label>
               {{ form.subject }}
               {% if form.subject.errors %}

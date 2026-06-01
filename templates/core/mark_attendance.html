@@ -4,7 +4,7 @@
 <div class="row">
     <div class="col-md-12">
         <h2>Mark Attendance</h2>
-        <p><strong>Course:</strong> {{ course }} | <strong>Subject:</strong> {{ subject }}</p>
+        <p><strong>Department:</strong> {{ department }} | <strong>Semester:</strong> {{ semester }} | <strong>Course:</strong> {{ course }} | <strong>Subject:</strong> {{ subject }}</p>
         <hr>
         <form action="{% url 'save_attendance' %}" method="post">
             {% csrf_token %}
@@ -36,7 +36,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center">No students found for this course.</td>
+                            <td colspan="3" class="text-center">No students found for {{ department }} / {{ semester }} / {{ course }}.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

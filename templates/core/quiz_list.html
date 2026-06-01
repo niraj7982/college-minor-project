@@ -25,15 +25,27 @@
                         <h5 class="card-title">{{ quiz.title }}</h5>
                         <h6 class="card-subtitle mb-2 text-white-50">{{ quiz.subject }}</h6>
                         <p class="card-text">{{ quiz.description|truncatewords:20 }}</p>
-                        <p class="small text-white-50">Questions: {{ quiz.questions.count }}</p>
+                        <p class="small text-white-50 mb-1">Questions: {{ quiz.questions.count }}</p>
+                        {% if not is_teacher and quiz.user_result %}
+                        <div class="mt-2 p-2 rounded" style="background: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.3);">
+                            <span style="color: #00E676; font-weight: 600;">✅ Attempted</span>
+                            <span class="float-end text-warning fw-bold">Score: {{ quiz.user_result.score }} / {{ quiz.user_result.total_questions }}</span>
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="card-footer bg-transparent border-top-0">
                         {% if is_teacher %}
-                        <a href="{% url 'add_question' quiz.id %}" class="btn btn-sm btn-outline-secondary">Add
-                            Questions</a>
-                        <!-- Add delete/edit later -->
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{% url 'edit_quiz' quiz.id %}" class="btn btn-sm btn-warning flex-grow-1">✏️ Edit</a>
+                            <a href="{% url 'add_question' quiz.id %}" class="btn btn-sm btn-outline-secondary flex-grow-1">❓ Questions</a>
+                            <a href="{% url 'view_quiz_results' quiz.id %}" class="btn btn-sm btn-info text-white flex-grow-1">📊 Results</a>
+                        </div>
                         {% else %}
-                        <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-sm btn-success w-100">Take Quiz</a>
+                            {% if quiz.user_result %}
+                            <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-sm btn-outline-info w-100">View Result Detail</a>
+                            {% else %}
+                            <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-sm btn-success w-100">Take Quiz</a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>

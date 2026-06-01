@@ -2,6 +2,40 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import User, Student, Teacher, Bus, Driver, Attendance, Marks, Notice, Complaint, Feedback, Fee, LostFoundItem, PasswordResetOTP, ChatbotTrainingData, Assignment, Submission, Resource, Quiz, Question, QuizResult
 
+COURSE_CHOICES = [
+    ('', 'Select Course'),
+    ('btech', 'B.Tech'),
+    ('bsc', 'B.Sc'),
+    ('bca', 'BCA'),
+    ('mtech', 'M.Tech'),
+    ('mca', 'MCA'),
+    ('mba', 'MBA'),
+]
+
+DEPARTMENT_CHOICES = [
+    ('', 'Select Department/Branch'),
+    ('cs', 'CS'),
+    ('cse', 'C.SE / CSE'),
+    ('ece', 'ECE'),
+    ('ee', 'EE'),
+    ('me', 'ME'),
+    ('ce', 'CE'),
+    ('it', 'IT'),
+]
+
+SEMESTER_CHOICES = [
+    ('', 'Select Semester'),
+    ('1st Semester', '1st Semester'),
+    ('2nd Semester', '2nd Semester'),
+    ('3rd Semester', '3rd Semester'),
+    ('4th Semester', '4th Semester'),
+    ('5th Semester', '5th Semester'),
+    ('6th Semester', '6th Semester'),
+    ('7th Semester', '7th Semester'),
+    ('8th Semester', '8th Semester'),
+]
+
+
 
 
 class LoginForm(forms.Form):
@@ -16,8 +50,9 @@ class SignupForm(forms.ModelForm):
     # Extra fields for profiles
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}))
     roll_no = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Roll No (Student Only)'}))
-    course = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Course (Student Only)'}))
-    department = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Department (Student/Teacher)'}))
+    course = forms.ChoiceField(choices=COURSE_CHOICES, required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    semester = forms.ChoiceField(choices=SEMESTER_CHOICES, required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     
     # Driver fields
     phone_number = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number (Driver Only)'}))
@@ -40,6 +75,7 @@ class SignupForm(forms.ModelForm):
         roll_no = cleaned_data.get("roll_no")
         course = cleaned_data.get("course")
         department = cleaned_data.get("department")
+        semester = cleaned_data.get("semester")
         phone_number = cleaned_data.get("phone_number")
         license_number = cleaned_data.get("license_number")
         email = cleaned_data.get("email")
@@ -60,6 +96,8 @@ class SignupForm(forms.ModelForm):
                 self.add_error('course', 'Course is required for Students')
             if not department:
                 self.add_error('department', 'Department is required for Students')
+            if not semester:
+                self.add_error('semester', 'Semester is required for Students')
         
         elif role == 'teacher':
              if not department:
@@ -132,13 +170,15 @@ class ChatbotTrainingForm(forms.ModelForm):
         }
 
 class AssignmentForm(forms.ModelForm):
+    course = forms.ChoiceField(choices=COURSE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+    semester = forms.ChoiceField(choices=SEMESTER_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+    
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'course', 'subject', 'due_date', 'file', 'accept_late_submissions']
+        fields = ['title', 'description', 'course', 'semester', 'subject', 'due_date', 'file', 'accept_late_submissions']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Assignment Title'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Assignment Description'}),
-            'course': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Target Course (e.g. B.Tech)'}),
             'subject': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Subject'}),
             'due_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
@@ -157,25 +197,29 @@ class SubmissionForm(forms.ModelForm):
 # --- New Modules: Resources & Quiz Forms ---
 
 class ResourceForm(forms.ModelForm):
+    department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+    semester = forms.ChoiceField(choices=SEMESTER_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+    
     class Meta:
         model = Resource
-        fields = ['title', 'resource_type', 'subject', 'department', 'file']
+        fields = ['title', 'resource_type', 'subject', 'department', 'semester', 'file']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Resource Title'}),
             'resource_type': forms.Select(attrs={'class': 'form-control'}),
             'subject': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Subject'}),
-            'department': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Target Department (e.g. CS)'}),
             'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
 class QuizForm(forms.ModelForm):
+    department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+    semester = forms.ChoiceField(choices=SEMESTER_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+    
     class Meta:
         model = Quiz
-        fields = ['title', 'subject', 'department', 'description']
+        fields = ['title', 'subject', 'department', 'semester', 'description']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Quiz Title'}),
             'subject': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Subject'}),
-            'department': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Target Department (e.g. CS)'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Quiz Description/Instructions'}),
         }
 
@@ -211,12 +255,13 @@ class BusForm(forms.ModelForm):
         self.fields['driver'].label_from_instance = lambda obj: f"{obj.user.username} (License: {obj.license_number})"
 
 class FeeForm(forms.ModelForm):
+    semester = forms.ChoiceField(choices=SEMESTER_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+    
     class Meta:
         model = Fee
         fields = ['student', 'semester', 'amount', 'due_date', 'status']
         widgets = {
             'student': forms.Select(attrs={'class': 'form-control'}),
-            'semester': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Semester (e.g. 1st, 2nd)'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Amount'}),
             'due_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'status': forms.Select(attrs={'class': 'form-control'}),

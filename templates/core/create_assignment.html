@@ -353,7 +353,7 @@
           <div class="form-section-label" style="margin-top:1.5rem;">Target Class</div>
 
           <div class="row g-3 mb-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="field-label" for="id_course">Course / Class <span>*</span></label>
               {{ form.course }}
               {% if form.course.errors %}
@@ -362,7 +362,16 @@
                 {% endfor %}
               {% endif %}
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
+              <label class="field-label" for="id_semester">Semester <span>*</span></label>
+              {{ form.semester }}
+              {% if form.semester.errors %}
+                {% for error in form.semester.errors %}
+                  <div class="field-error">⚠️ {{ error }}</div>
+                {% endfor %}
+              {% endif %}
+            </div>
+            <div class="col-md-4">
               <label class="field-label" for="id_subject">Subject <span>*</span></label>
               {{ form.subject }}
               {% if form.subject.errors %}
@@ -395,6 +404,24 @@
                   <div class="field-error">⚠️ {{ error }}</div>
                 {% endfor %}
               {% endif %}
+            </div>
+          </div>
+
+          <!-- Late Submission Section -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-12">
+               <div class="form-check mt-2" style="background: rgba(30, 41, 59, 0.4); border-radius: 12px; padding: 1rem 1rem 1rem 2.8rem; border: 1px solid rgba(99,102,241,0.2);">
+                    {{ form.accept_late_submissions }}
+                    <label class="form-check-label field-label mb-0 ms-2" for="id_accept_late_submissions">
+                        Accept Late Submissions
+                        <div class="field-hint mb-0" style="margin-top: 2px;">If enabled, students can submit even after the due date has passed.</div>
+                    </label>
+                    {% if form.accept_late_submissions.errors %}
+                        {% for error in form.accept_late_submissions.errors %}
+                            <div class="field-error">⚠️ {{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
             </div>
           </div>
 
