@@ -18,6 +18,7 @@ IS_VERCEL = bool(os.environ.get('VERCEL', ''))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent
 
 
 def _load_local_env_file(file_path):
@@ -38,6 +39,8 @@ def _load_local_env_file(file_path):
 
 # Load local env variables when running outside Vercel.
 if not IS_VERCEL:
+    _load_local_env_file(PROJECT_ROOT / '.env.local')
+    _load_local_env_file(PROJECT_ROOT / '.env')
     _load_local_env_file(BASE_DIR / '.env.local')
     _load_local_env_file(BASE_DIR / '.env')
 
@@ -95,7 +98,10 @@ ROOT_URLCONF = 'digital_campus.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            PROJECT_ROOT / 'frontend' / 'templates',
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -130,7 +136,7 @@ elif IS_VERCEL:
     import shutil
     # Use the actual bundled database name instead of assuming db.sqlite3
     db_name = os.environ.get('SQLITE_DB_NAME', 'db_local.sqlite3')
-    DB_SOURCE = BASE_DIR / db_name
+    DB_SOURCE = PROJECT_ROOT / db_name if (PROJECT_ROOT / db_name).exists() else BASE_DIR / db_name
     DB_DEST = Path('/tmp/db.sqlite3')
     # Copy the bundled DB to /tmp on every cold start (Vercel project dir is read-only)
     if DB_SOURCE.exists():
@@ -145,11 +151,12 @@ elif IS_VERCEL:
         }
     }
 else:
-    local_db_name = os.environ.get('SQLITE_DB_NAME', 'db.sqlite3')
+    local_db_name = os.environ.get('SQLITE_DB_NAME', 'db_local.sqlite3' if (PROJECT_ROOT / 'db_local.sqlite3').exists() else 'db.sqlite3')
+    db_file_path = PROJECT_ROOT / local_db_name if (PROJECT_ROOT / local_db_name).exists() else BASE_DIR / local_db_name
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / local_db_name,
+            'NAME': db_file_path,
             'OPTIONS': {
                 'timeout': 20,  # 20 second timeout for database locks
                 'init_command': "PRAGMA journal_mode=WAL;",  # Write-Ahead Logging for better concurrency
@@ -222,8 +229,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [p for p in [PROJECT_ROOT / 'frontend' / 'static', BASE_DIR / 'static'] if p.exists()]
+STATIC_ROOT = PROJECT_ROOT / 'staticfiles'
 
 if IS_VERCEL or not DEBUG:
     # WhiteNoise for serving static files in production.
@@ -241,7 +248,7 @@ AUTH_USER_MODEL = 'core.User'
 LOGIN_URL = 'login'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 # On Vercel the project dir is read-only; redirect media writes to /tmp
 if IS_VERCEL:
     MEDIA_ROOT = '/tmp/media'

@@ -10,10 +10,12 @@ https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
 import os
 import sys
 
-# Ensure the root project directory is in the Python path
-path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if path not in sys.path:
-    sys.path.append(path)
+# Ensure both backend and root directories are in the Python path
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+root_dir = os.path.dirname(backend_dir)
+for p in (backend_dir, root_dir):
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 from django.core.wsgi import get_wsgi_application
 
